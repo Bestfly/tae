@@ -19,8 +19,12 @@ module.exports = {
 			 index: true
          },
 		 ipValue: {
-             type: 'ipv4',
+             type: 'string',
+             defaultsTo: '555.555.555.555:5555',
              required: true,
+             minLength: 10,
+             maxLength: 21,
+			 contains: ':',
 			 //唯一约束
 			 unique: true
 		 },
@@ -31,8 +35,8 @@ module.exports = {
          },
          country: {
              type: 'string',
-			 defaultsTo: 'CN',
-			 len: 2,
+             minLength: 2,
+             maxLength: 2,
              required: true,
 			 index: true
          },
