@@ -26,12 +26,12 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 
 CREATE TABLE IF NOT EXISTS `proxies` (
-  `uid` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `ipValue` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `line` int(11) DEFAULT NULL,
-  `country` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `region` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `speed` text COLLATE utf8_unicode_ci,
+  `uid` varchar(40) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `ipValue` varchar(21) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `line` tinyint(1) DEFAULT NULL,
+  `country` char(2) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `region` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `speed` varchar(255) COLLATE utf8_unicode_ci,
   `fatchHit` int(11) DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
   `effect` tinyint(1) DEFAULT NULL,
