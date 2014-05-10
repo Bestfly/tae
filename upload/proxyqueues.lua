@@ -37,7 +37,6 @@ function sleep(n)
    socket.select(nil, nil, n)
 end
 local url = "http://ip.taobao.com/service/getIpInfo.php?ip="
-local dbi = "http://127.0.0.1:18001/proxy/create?uid=142ffb5bfa1-cn-jijilu-dg-a01&ipValue=%s&line=%s&country=%s&region=%s&fatchHit=0&status=1&effect=1";
 while true do
 	local res, err = client:lpop("rms:proxy")
 	if type(res) ~= "string" then
@@ -57,7 +56,7 @@ while true do
 				local body, tmpcode, headers, status = http.request {
 					url = "http://www.bestfly.cn/",
 					--- proxy = "http://127.0.0.1:8888",
-					proxy = "http://" .. indentyip,
+					proxy = "http://" .. res,
 					timeout = 2000,
 					method = "GET", -- POST or GET
 					-- add post content-type and cookie
@@ -67,6 +66,7 @@ while true do
 					sink = ltn12.sink.table(respbody)
 				}
 				if tmpcode == 200 then
+					local dbi = "http://127.0.0.1:18001/proxy/create?uid=142ffb5bfa1-cn-jijilu-dg-a01&ipValue=%s&line=%s&country=%s&region=%s&fatchHit=0&status=1&effect=1";
 					if tmpdata.country_id ~= "CN" then
 						dbi = string.format(dbi, res, 9, tmpdata.country_id, tmpdata.country_id)
 					else
@@ -93,6 +93,7 @@ while true do
 						print(res .. "----effect IP from ProxyQ---------\n");
 					else
 						client:rpush("rms:fail", code .. "|" .. res)
+						print(code,body,dbi);
 						print(res .. "----write IP into db failure---------\n");
 					end
 				else
