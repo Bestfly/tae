@@ -68,7 +68,7 @@ while true do
 				}
 				if tmpcode == 200 then
 					if tmpdata.country_id ~= "CN" then
-						dbi = string.format(dbi, res, 9, tmpdata.country_id, "")
+						dbi = string.format(dbi, res, 9, tmpdata.country_id, tmpdata.country_id)
 					else
 						local tmpline = tmpdata.isp;
 						-- 1 电信, 2 联通, 3 移动, 4 教育, 5 长宽
