@@ -25,6 +25,7 @@ module.exports = {
              minLength: 10,
              maxLength: 21,
 			 contains: ':',
+			 primaryKey: true,
 			 //唯一约束
 			 unique: true
 		 },
