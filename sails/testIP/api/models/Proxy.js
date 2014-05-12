@@ -25,9 +25,9 @@ module.exports = {
              minLength: 10,
              maxLength: 21,
 			 contains: ':',
-			 primarykey: true
+			 //primaryKey: true,
 			 //唯一约束
-			 //unique: true
+			 unique: true
 		 },
          line: {
 			 //0 default, 1 电信, 2 联通, 3 移动, 4 教育, 5 长宽, 678预留, 9 国外 
@@ -61,6 +61,11 @@ module.exports = {
          effect: {
              type: 'boolean',
              required: true
-         }
+         },
+		 toJSON: function() {
+			 var obj = this.toObject();
+			 delete obj.uid;
+			 return obj;
+		 }
     }
 };

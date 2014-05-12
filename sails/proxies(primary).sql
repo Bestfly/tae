@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `proxies` (
   `fatchHit` int(11) DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
   `effect` tinyint(1) DEFAULT NULL,
-  -- `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`ipValue`)

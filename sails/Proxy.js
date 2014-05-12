@@ -25,7 +25,7 @@ module.exports = {
              minLength: 10,
              maxLength: 21,
 			 contains: ':',
-			 primaryKey: true,
+			 //primaryKey: true,
 			 //唯一约束
 			 unique: true
 		 },
@@ -61,6 +61,11 @@ module.exports = {
          effect: {
              type: 'boolean',
              required: true
-         }
+         },
+		 toJSON: function() {
+			 var obj = this.toObject();
+			 delete obj.uid;
+			 return obj;
+		 }
     }
 };
