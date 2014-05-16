@@ -1,0 +1,12 @@
+PUT update
+http://localhost:1337/proxy/54.248.71.1:8088?speed={"kayak":2300,"elong":385}&line=3
+
+http://localhost:1337/proxy/54.248.71.1:8088?status=true&line=1
+
+http://localhost:1337/proxy/54.248.71.1:8088?fatchHit=1
+
+
+GET find
+http://localhost:1337/proxy?where={"speed":{"!":null}}&limit=3&sort=ipValue desc
+http://localhost:1337/proxy?where={"speed":{"!":null}}&limit=3&sort=fatchHit
+http://localhost:1337/proxy?where={%22speed%22:null}&limit=3&sort=fatchHit
