@@ -16,10 +16,14 @@ function error000 (mes)
 	local res = JSON.encode({ ["resultCode"] = 0, ["description"] = mes});
 	return res
 end
-local error001 = JSON.encode({ ["resultCode"] = 1, ["description"] = "error001#tradeID not found"});
-local error002 = JSON.encode({ ["resultCode"] = 2, ["description"] = "error002#Service unSupported now."});
-function error003 (mes)
-	local res = JSON.encode({ ["resultCode"] = 3, ["description"] = mes});
+local error001 = JSON.encode({ ["resultCode"] = 1, ["description"] = "error001#tradeID not input"});
+function error002 (tid)
+	local res = JSON.encode({ ["resultCode"] = 2, ["description"] = "error002#The TradeID " .. tid .. " not found, please buy or contact seller"});
+	return res
+end
+local error003 = JSON.encode({ ["resultCode"] = 3, ["description"] = "error003#Please input the limit between 0,1000"});
+function error009 (mes)
+	local res = JSON.encode({ ["resultCode"] = 9, ["description"] = mes});
 	return res
 end
 -- ready to connect to master redis.
@@ -46,8 +50,31 @@ if ngx.var.request_method == "GET" then
 	for key, val in pairs(parg) do
 		tmp[string.lower(key)] = val
 	end
-	if tmp["tradeid"] ~= nil then
-		ngx.say(tmp["tradeid"])
+	local tid = tmp["tradeid"]
+	-- ngx.say(type(tid))
+	if type(tid) ~= "boolean" and tid ~= nil and tid ~= "" and tid ~= JSON.null then
+		local num, err = red:zscore("proxy:tid", tid)
+		if not num then
+			ngx.print(error009("error009#failed to find the number result of tradeID->>" .. tid))
+			return
+		else
+			if num ~= nil and num ~= JSON.null then
+				local limit = tonumber(tmp["limit"]);
+				if limit ~= nil then
+					if 0 < limit and limit <= 1000 then
+						-- line & country & repeat
+						
+						ngx.say(limit)
+					else
+						ngx.print(error003)
+					end
+				else
+					ngx.print(num);
+				end
+			else
+				ngx.print(error002(tid));
+			end
+		end
 	else
 		ngx.print(error001);
 	end
