@@ -138,7 +138,7 @@ else
 		ngx.exit(ngx.HTTP_BAD_REQUEST);
 	else
 		--[[
-		--Debug LOGs
+		-- Debug LOGs
 		local wname = "/data/logs/rholog.txt"
 		local wfile = io.open(wname, "w+");
 		wfile:write(os.date());
@@ -190,7 +190,7 @@ else
 								-- update sc.
 								local res, err = red:zadd(tkey, sc, sortkey)
 								if not res then
-									ngx.print(error003("failed to save uk's sc->>" .. tkey .. '|' .. tk .. '|' .. sc))
+									ngx.print(error003("failed to save uk's sc->>" .. tkey .. '|' .. uk .. '|' .. sc))
 									return
 								end
 								local ok = memc:replace(kvid, vb)
@@ -214,7 +214,7 @@ else
 						else
 							local res, err = red:zadd(tkey, sc, sortkey)
 							if not res then
-								ngx.print(error003("failed to save uk's sc->>" .. tkey .. '|' .. tk .. '|' .. sc))
+								ngx.print(error003("failed to save uk's sc->>" .. tkey .. '|' .. uk .. '|' .. sc))
 								return
 							end
 							local ok = memc:set(kvid, vb)

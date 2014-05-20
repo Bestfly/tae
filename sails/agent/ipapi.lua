@@ -64,6 +64,10 @@ if ngx.var.request_method == "GET" then
 					if 0 < limit and limit <= 1000 then
 						-- line & country & repeat
 						
+						local res = ngx.location.capture("/proxy?limit=" .. limit .. "&line=");
+						if res.status == 200 then
+							ngx.print(res.body);
+						end
 						ngx.say(limit)
 					else
 						ngx.print(error003)
