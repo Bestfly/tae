@@ -22,6 +22,9 @@ function error002 (tid)
 	return res
 end
 local error003 = JSON.encode({ ["resultCode"] = 3, ["description"] = "error003#Please input the limit between 0,1000"});
+local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#Please try again later"});
+local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#Get IP from Queues is no result"});
+local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#No IP left, Please buy more"});
 function error009 (mes)
 	local res = JSON.encode({ ["resultCode"] = 9, ["description"] = mes});
 	return res
@@ -58,22 +61,90 @@ if ngx.var.request_method == "GET" then
 			ngx.print(error009("error009#failed to find the number result of tradeID->>" .. tid))
 			return
 		else
-			if num ~= nil and num ~= JSON.null then
-				local limit = tonumber(tmp["limit"]);
-				if limit ~= nil then
-					if 0 < limit and limit <= 1000 then
-						-- line & country & repeat
-						
-						local res = ngx.location.capture("/proxy?limit=" .. limit .. "&line=");
-						if res.status == 200 then
-							ngx.print(res.body);
+			num = tonumber(num);
+			if num ~= nil then
+				if num > 0 then
+					local limit = tonumber(tmp["limit"]);
+					if limit ~= nil then
+						if 0 < limit and limit <= 1000 then
+							if limit >= num then
+								limit = num;
+							end
+							local capuri = "";
+							-- line & country & repeat
+							if tmp["repeat"] ~= nil then
+								if tonumber(tmp["line"]) ~= 9 and tonumber(tmp["line"]) ~= nil then
+									capuri = "/proxy?limit=" .. limit .. "&line=" .. tmp["line"]
+								else
+									if tmp["country"] ~= nil then
+										capuri = "/proxy?limit=" .. limit .. "&country=" .. tmp["country"]
+									else
+										capuri = "/proxy?limit=" .. limit
+									end
+								end
+							else
+								if tonumber(tmp["line"]) ~= 9 and tonumber(tmp["line"]) ~= nil then
+									capuri = "/proxy?limit=" .. limit .. "&line=" .. tmp["line"]
+								else
+									if tmp["country"] ~= nil then
+										capuri = "/proxy?limit=" .. limit .. "&country=" .. tmp["country"]
+									else
+										capuri = "/proxy?limit=" .. limit
+									end
+								end
+							end
+							-- subrequest
+							local subreq = "";
+							local today = os.date("%Y%m%d", os.time());
+							local pos, err = red:zscore("posi:" .. today, tid)
+							if not pos then
+								ngx.print(error009("error009#failed to find the position information of tradeID->>" .. tid))
+								return
+							else
+								if pos ~= nil and pos ~= JSON.null then
+									subreq = capuri .. "&sort=updatedAt&skip=" .. pos
+								else
+									subreq = capuri .. "&sort=updatedAt"
+								end
+								local res = ngx.location.capture(subreq)
+								if res.status == 200 then
+									local task = {};
+									local result = {};
+									local resp = JSON.decode(res.body)
+									local resnum = table.getn(resp);
+									if resnum > 0 then
+										for i = 1, resnum do
+											task[i] = resp[i].ipValue
+										end
+										result["resultCode"] = 0;
+										result["ipNumber"] = resnum;
+										result["ipQueues"] = task;
+										ngx.print(JSON.encode(result))
+										num, err = red:zincrby("proxy:tid", 0-limit, tid)
+										if not num then
+											ngx.print(error009("error009#failed to zincrby the number result of tradeID->>" .. tid))
+											return
+										end
+										pos, err = red:zincrby("pos:" .. today, limit, tid)
+										if not pos then
+											ngx.print(error009("error009#failed to zincrby the position of tradeID->>" .. tid))
+											return
+										end
+									else
+										ngx.print(error005)
+									end
+								else
+									ngx.print(error004)
+								end
+							end
+						else
+							ngx.print(error003)
 						end
-						ngx.say(limit)
 					else
-						ngx.print(error003)
+						ngx.print(num);
 					end
 				else
-					ngx.print(num);
+					ngx.print(error006)
 				end
 			else
 				ngx.print(error002(tid));
@@ -89,6 +160,6 @@ end
 -- with 10 seconds max idle time
 local ok, err = red:set_keepalive(10000, 100)
 if not ok then
-    ngx.say("failed to set keepalive: ", err)
+    ngx.print(error009("failed to set keepalive: ", err))
     return
 end

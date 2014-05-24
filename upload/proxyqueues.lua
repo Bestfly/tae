@@ -71,11 +71,11 @@ while true do
 						dbi = string.format(dbi, res, 9, tmpdata.country_id, tmpdata.country_id)
 					else
 						local tmpline = tmpdata.isp;
-						-- 1 电信, 2 联通, 3 移动, 4 教育, 5 长宽
-						local linet = {"电信","联通","移动","教育","长"};
+						-- 1 电信, 2 联通, 3 移动, 4 教育, 5 长宽, 6 铁通
+						local linet = {"电信","联通","移动","教育","长","铁通"};
 						local bol = false;
 						for i = 1,table.getn(linet) do
-							local idx = string.find(linet[i], tmpline)
+							local idx = string.find(tmpline, linet[i])
 							if idx ~= nil then
 								tmpline = i;
 								bol = true;
