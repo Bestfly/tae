@@ -120,12 +120,12 @@ if ngx.var.request_method == "GET" then
 										result["ipNumber"] = resnum;
 										result["ipQueues"] = task;
 										ngx.print(JSON.encode(result))
-										num, err = red:zincrby("proxy:tid", 0-limit, tid)
+										num, err = red:zincrby("proxy:tid", 0-resnum, tid)
 										if not num then
 											ngx.print(error009("error009#failed to zincrby the number result of tradeID->>" .. tid))
 											return
 										end
-										pos, err = red:zincrby("pos:" .. today, limit, tid)
+										pos, err = red:zincrby("pos:" .. today, resnum, tid)
 										if not pos then
 											ngx.print(error009("error009#failed to zincrby the position of tradeID->>" .. tid))
 											return
