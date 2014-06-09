@@ -35,7 +35,7 @@ module.exports = {
              minLength: 2,
              maxLength: 50,
              required: true,
-			 unique: true
+			 //unique: true
          },
 		 prefixLetter: {
              type: 'string',

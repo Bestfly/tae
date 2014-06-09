@@ -23,3 +23,11 @@ a = {}
 for k,v in pairs(signtab) do table.insert(a, v) end
 table.sort(a)
 for i,n in ipairs(a) do print(n) end
+
+
+local a = "<![CDATA[路南区]]>"
+
+
+for w in string.gmatch(a, "(<![CDATA[(%w+)]]>)") do
+　	print(w)
+end

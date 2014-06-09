@@ -151,7 +151,8 @@ local xv = "20111128102912"
 local GetProvinceList = "GetProvinceList"
 local GetSceneryList = "GetSceneryList"
 local GetCityList = "GetCityListByProvinceId"
-local sn = GetCityList
+local GetCountyList = "GetCountyListByCityId"
+local sn = GetCountyList
 -- local org = string.sub(arg[1], 1, 3);
 -- local dst = string.sub(arg[1], 5, 7);
 -- local tkey = string.sub(arg[1], 9, -3);
@@ -185,6 +186,7 @@ print(ts)
 -- print(sign)
 -- print(string.upper(org), string.upper(dst), date, today)
 local Citybody = ([=[<provinceId>%s</provinceId>]=]):format(2)
+local Division = ([=[<cityId>%s</cityId>]=]):format(321)
 local Scenerybody = ([=[
 	<clientIp>127.0.0.1</clientIp>
 	<cityId>321</cityId>
@@ -203,7 +205,7 @@ local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 	<body>
 		%s
 	</body>
-</request>]=]):format(xv, ad, sn, signmd5, ts, Citybody)
+</request>]=]):format(xv, ad, sn, signmd5, ts, Division)
 -- reqxml = string.gsub(reqxml, "<", "&lt;")
 print(reqxml)
 print("-----------------")
