@@ -505,12 +505,12 @@ if code == 200 then
 									local tkey = base64.encode(cl[i]["name"])
 									local clid = cl[i]["id"]
 									if citycn[tkey] ~= nil and citycn[tkey] ~= "" then
-										dbi = ([=[http://localhost:1337/city/create?CountryCode=%s&ProvinceId=%s&code=%s&LyId=%s&name=%s&ename=%s&prefixLetter=%s]=]):format("CN", JSON.decode(body).id, citycn[tkey], clid, urlencode(cl[i]["name"]), urlencode(cl[i]["enName"]), cl[i]["prefixLetter"])
+										dbi = ([=[http://localhost:1337/city/create?CountryCode=%s&ProvinceId=%s&code=%s&cLyId=%s&name=%s&ename=%s&prefixLetter=%s]=]):format("CN", JSON.decode(body).id, citycn[tkey], clid, urlencode(cl[i]["name"]), urlencode(cl[i]["enName"]), cl[i]["prefixLetter"])
 									else
 										if cl[i]["enName"] ~= nil and cl[i]["prefixLetter"] ~= nil then
-											dbi = ([=[http://localhost:1337/city/create?CountryCode=%s&ProvinceId=%s&LyId=%s&name=%s&ename=%s&prefixLetter=%s]=]):format("CN", JSON.decode(body).id, clid, urlencode(cl[i]["name"]), urlencode(cl[i]["enName"]), cl[i]["prefixLetter"])
+											dbi = ([=[http://localhost:1337/city/create?CountryCode=%s&ProvinceId=%s&cLyId=%s&name=%s&ename=%s&prefixLetter=%s]=]):format("CN", JSON.decode(body).id, clid, urlencode(cl[i]["name"]), urlencode(cl[i]["enName"]), cl[i]["prefixLetter"])
 										else
-											dbi = ([=[http://localhost:1337/city/create?CountryCode=%s&ProvinceId=%s&LyId=%s&name=%s]=]):format("CN", JSON.decode(body).id, clid, urlencode(cl[i]["name"]))
+											dbi = ([=[http://localhost:1337/city/create?CountryCode=%s&ProvinceId=%s&cLyId=%s&name=%s]=]):format("CN", JSON.decode(body).id, clid, urlencode(cl[i]["name"]))
 										end
 									end
 									local body, code, headers = http.request(dbi)
@@ -549,11 +549,12 @@ if code == 200 then
 													end
 													-- print(JSON.encode(dl))
 													for i = 1, table.getn(dl) do
+														local dlid = dl[i]["id"]
 														local dbi = "";
 														if dl[i]["prefixLetter"] ~= nil then
-															dbi = ([=[http://localhost:1337/division/create?CityCode=%s&LyId=%s&name=%s&prefixLetter=%s]=]):format(clid, dl[i]["id"], urlencode(dl[i]["name"]), dl[i]["prefixLetter"])
+															dbi = ([=[http://localhost:1337/division/create?CityId=%s&dLyId=%s&name=%s&prefixLetter=%s]=]):format(JSON.decode(body).id, dlid, urlencode(string.sub(dl[i]["name"], 10, -4)), dl[i]["prefixLetter"])
 														else
-															dbi = ([=[http://localhost:1337/division/create?CityCode=%s&LyId=%s&name=%s]=]):format(clid, dl[i]["id"], urlencode(dl[i]["name"]))
+															dbi = ([=[http://localhost:1337/division/create?CityId=%s&dLyId=%s&name=%s]=]):format(JSON.decode(body).id, dlid, urlencode(string.sub(dl[i]["name"], 10, -4)))
 														end
 														local body, code, headers = http.request(dbi)
 														if code == 200 then

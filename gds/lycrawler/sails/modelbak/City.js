@@ -12,26 +12,30 @@ module.exports = {
 	schema: true,
 	
     // Toggle the auto primary key (id) off
-    autoPK: false,
+    // autoPK: false,
 	
     attributes: {
          CountryCode: {
 			 model: 'Country',
-			 columnName: 'CountryCode'
+			 columnName: 'CountryCode',
+			 required: true,
+			 index: true
          },
 		 ProvinceId: {
 			 model: 'Province',
-			 columnName: 'ProvinceId'
+			 columnName: 'ProvinceId',
+			 required: true,
+			 index: true
 		 },
          code: {
              type: 'string',
              minLength: 3,
              maxLength: 3,
-             required: true,
-			 primaryKey: true
-			 //unique: true
+             required: false,
+			 //primaryKey: true
+			 unique: true
          },
-		 LyId: {
+		 cLyId: {
 			 type: 'integer',
 			 required: true,
 			 unique: true
@@ -48,7 +52,7 @@ module.exports = {
              type: 'string',
              minLength: 2,
              maxLength: 50,
-             required: true,
+             required: false,
 			 //index: true
 			 //unique: true
          },
@@ -56,15 +60,15 @@ module.exports = {
              type: 'string',
              minLength: 3,
              maxLength: 50,
-             required: true,
+             required: false,
 			 //index: true
          },
 		 prefixLetter: {
              type: 'string',
 			 minLength: 1,
 			 maxLength: 1,
-			 required: true,
-			 index: true
+			 required: false,
+			 //index: true
 		 }
 	 }
 };

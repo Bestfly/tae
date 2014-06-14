@@ -10,7 +10,7 @@ module.exports = {
 	schema: true,
 	
     attributes: {
-         CityCode: {
+         CityId: {
 			 model: 'City',
 			 columnName: 'CityId',
 			 required: true,
@@ -20,9 +20,7 @@ module.exports = {
              type: 'string',
 			 minLength: 2,
 			 maxLength: 50,
-			 required: true,
-			 unique: true
-			 //index: true
+			 required: true
 		 },
          ename: {
              type: 'string',
@@ -32,7 +30,7 @@ module.exports = {
 			 //unique: true
 			 //index: true
          },
-		 LyId: {
+		 dLyId: {
 			 type: 'integer',
 			 required: true,
 			 unique: true

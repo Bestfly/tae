@@ -152,7 +152,12 @@ local GetProvinceList = "GetProvinceList"
 local GetSceneryList = "GetSceneryList"
 local GetCityList = "GetCityListByProvinceId"
 local GetCountyList = "GetCountyListByCityId"
-local sn = GetCountyList
+local GetSceneryDetail = "GetSceneryDetail"
+local GetSceneryTrafficInfo = "GetSceneryTrafficInfo"
+local GetNearbyScenery = "GetNearbyScenery"
+local GetSceneryImageList = "GetSceneryImageList"
+-- local sn = GetCountyList
+local sn = GetSceneryTrafficInfo
 -- local org = string.sub(arg[1], 1, 3);
 -- local dst = string.sub(arg[1], 5, 7);
 -- local tkey = string.sub(arg[1], 9, -3);
@@ -162,8 +167,8 @@ local ts = os.date("%Y-%m-%d %X", os.time()) .. ".000";
 -- local ts = "2014-06-06 20:13:18.283"
 -- LY.com
 local baseurl = "http://tcopenapi.17usoft.com"
-local scenuri = "/Handlers/General/AdministrativeDivisionsHandler.ashx"
--- local scenuri = "/handlers/scenery/queryhandler.ashx"
+-- local scenuri = "/Handlers/General/AdministrativeDivisionsHandler.ashx"
+local scenuri = "/handlers/scenery/queryhandler.ashx"
 -- {"Version=" + version,"AccountID=" + accountId, "ServiceName="+methodName, "ReqTime="+ reqTime}
 local signtab = { "Version=" .. xv, "AccountID=" .. ad, "ServiceName=" .. sn, "ReqTime=" .. ts }
 -- print(JSON.encode(signtab))
@@ -187,11 +192,14 @@ print(ts)
 -- print(string.upper(org), string.upper(dst), date, today)
 local Citybody = ([=[<provinceId>%s</provinceId>]=]):format(2)
 local Division = ([=[<cityId>%s</cityId>]=]):format(321)
-local Scenerybody = ([=[
-	<clientIp>127.0.0.1</clientIp>
+local Scenerylist = ([=[<clientIp>127.0.0.1</clientIp>
 	<cityId>321</cityId>
 	<page>3</page>
-	<pageSize>1</pageSize>]=])
+	<pageSize>10</pageSize>]=])
+local Scenerybody = ([=[<sceneryId>28405</sceneryId>]=])
+local nearbyScenerylist = ([=[<sceneryId>28405</sceneryId>
+	<page>3</page>
+	<pageSize>10</pageSize>]=])
 print("------------------------------------------")
 local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 <request>
@@ -205,7 +213,7 @@ local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 	<body>
 		%s
 	</body>
-</request>]=]):format(xv, ad, sn, signmd5, ts, Division)
+</request>]=]):format(xv, ad, sn, signmd5, ts, Scenerybody)
 -- reqxml = string.gsub(reqxml, "<", "&lt;")
 print(reqxml)
 print("-----------------")

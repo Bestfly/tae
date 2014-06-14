@@ -28,6 +28,6 @@ for i,n in ipairs(a) do print(n) end
 local a = "<![CDATA[路南区]]>"
 
 
-for w in string.gmatch(a, "(<![CDATA[(%w+)]]>)") do
-　	print(w)
-end
+a = string.match(a, '[\x80-\xff]', 2)
+
+print(a)
