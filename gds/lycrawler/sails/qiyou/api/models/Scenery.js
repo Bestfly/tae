@@ -67,30 +67,6 @@ module.exports = {
 		 aliasName: {
              type: 'string'
 		 },
-		 // 景点主题NameList
-		 themeName: {
-			 type: 'string'
-		 },
-		 // 适合人群NameList
-		 suitherdName: {
-			 type: 'string'
-		 },
-		 // 游客印象NameList
-		 impressionName: {
-			 type: 'string'
-		 },
-		 // 景点主题ids
-		 themeIds: {
-			 type: 'string'
-		 },
-		 // 适合人群ids
-		 suitherdIds: {
-			 type: 'string'
-		 },
-		 // 游客印象ids
-		 impressionIds: {
-			 type: 'string'
-		 },
 		 // 周边景点ids
 		 NearbySceneryIds: {
 			 type: 'string',

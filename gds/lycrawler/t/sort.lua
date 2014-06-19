@@ -31,3 +31,7 @@ local a = "<![CDATA[路南区]]>"
 a = string.match(a, '[\x80-\xff]', 2)
 
 print(a)
+print(os.time())
+
+-- 1403080684
+-- 1403080560459

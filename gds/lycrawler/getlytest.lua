@@ -224,6 +224,7 @@ local body, code, headers, status = http.request {
 -- local ok, code, headers, status, body = http.request {
 	-- url = "http://cloudavh.com/data-gw/index.php",
 	url = baseurl .. scenuri,
+	-- url = "http://localhost:3000/citycns",
 	-- proxy = "http://10.123.74.137:808",
 	-- proxy = "http://" .. tostring(arg[2]),
 	timeout = 3000,
@@ -232,7 +233,7 @@ local body, code, headers, status = http.request {
 	-- headers = { ["Content-Type"] = "application/x-www-form-urlencoded", ["Content-Length"] = string.len(form_data) },
 	-- headers = { ["Host"] = "flight.itour.cn", ["X-AjaxPro-Method"] = "GetFlight", ["Cache-Control"] = "no-cache", ["Accept-Encoding"] = "gzip,deflate,sdch", ["Accept"] = "*/*", ["Origin"] = "chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm", ["Connection"] = "keep-alive", ["Content-Type"] = "application/json", ["Content-Length"] = string.len(JSON.encode(request)), ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36" },
 	headers = {
-		["Host"] = "tcopenapi.17usoft.com",
+		-- ["Host"] = "tcopenapi.17usoft.com",
 		-- ["SOAPAction"] = "http://ctrip.com/Request",
 		["Cache-Control"] = "no-cache",
 		["Accept-Encoding"] = "gzip",
@@ -257,12 +258,14 @@ if code == 200 then
 	end
 	-- resxml = deflate.gunzip(resxml)
 	-- change to use compress.deflatelua
+	
 	local output = {}
 	deflate.gunzip {
 	  input = resxml,
 	  output = function(byte) output[#output+1] = string.char(byte) end
 	}
 	resxml = table.concat(output)
+	
 	-- resxml = zlib.decompress(resxml)
 	-- resxml = string.gsub(resxml, "&lt;", "<")
 	-- resxml = string.gsub(resxml, "&gt;", ">")
