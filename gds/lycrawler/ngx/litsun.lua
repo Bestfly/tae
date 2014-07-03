@@ -45,7 +45,7 @@ local md5uri = "/cgishell/module/xml/air_other.pl?";
 local Corp_ID = "MANGGO";
 local md5key = "D%d3L8#F";
 -- local args = ("Air_date=2014.06.30&Airline=CZ&Arrive=CSX&Corp_ID=%s&Depart=CAN&Type=FDBLKD"):format(Corp_ID)
-local args = ("Air_date=2014.06.30&Airline=CZ&Corp_ID=%s&Trip=SZXSHA&Type=FDBLKD"):format(Corp_ID)
+local args = ("Air_date=2014.06.30&Airline=CZ&Corp_ID=%s&Trip=SZXSHA&Type=FD"):format(Corp_ID)
 local sign = string.upper(md5.sumhexa(args))
 args = args .. "&Sign=" .. sign
 print("--------------")

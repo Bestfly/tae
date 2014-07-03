@@ -146,7 +146,7 @@ function collect(s)
 end
 -- Main
 local ad = "54807975-9730-4850-b6b4-862128352ab4"
-local ak = "856474380e125a41" 
+local ak = "856474380e125a41"
 local xv = "20111128102912"
 local GetProvinceList = "GetProvinceList"
 local GetSceneryList = "GetSceneryList"
@@ -164,11 +164,93 @@ local sn = GetSceneryTrafficInfo
 -- local expiret = os.time({year=string.sub(tkey, 1, 4), month=tonumber(string.sub(tkey, 5, 6)), day=tonumber(string.sub(tkey, 7, 8)), hour="00"})
 -- local date = string.sub(arg[1], 9, 12) .. "-" .. string.sub(arg[1], 13, 14) .. "-" .. string.sub(arg[1], 15, 16);
 local ts = os.date("%Y-%m-%d %X", os.time()) .. ".000";
+local gdate = "2014-07-01"
+local bdate = "2014-07-31"
 -- local ts = "2014-06-06 20:13:18.283"
--- LY.com
-local baseurl = "http://tcopenapi.17usoft.com"
+-- mangocity
+
+-- http://flight.mangocity.com/oneway-Cheapest.shtml?queryParamVO.tripSegment=&queryParamVO.tripType=ow&queryParamVO.depAirport=&queryParamVO.arrAirport=&queryParamVO.depCityCn=%E6%B7%B1%E5%9C%B3&queryParamVO.depCity=SZX&queryParamVO.arrCityCn=%E4%B8%8A%E6%B5%B7&queryParamVO.arrCity=SHA&queryParamVO.depDate=2014-07-31
+local baseurl = "http://flight.mangocity.com"
 -- local scenuri = "/Handlers/General/AdministrativeDivisionsHandler.ashx"
-local scenuri = "/handlers/scenery/queryhandler.ashx"
+-- local scenuri = "/oneway-Cheapest.shtml?"
+local scenuri = "/round-Cheapest.shtml?"
+
+
+local formdata = {};
+
+table.insert(formdata, "queryParamVO.tripSegment=");
+table.insert(formdata, "queryParamVO.tripType=rt");
+table.insert(formdata, "queryParamVO.depAirport=");
+table.insert(formdata, "queryParamVO.arrAirport=");
+table.insert(formdata, "queryParamVO.depCityCn=" .. urlencode("深圳"));
+table.insert(formdata, "queryParamVO.depCity=SZX");
+table.insert(formdata, "queryParamVO.arrCityCn=" .. urlencode("上海"));
+table.insert(formdata, "queryParamVO.arrCity=SHA");
+table.insert(formdata, "queryParamVO.depDate=" .. gdate);
+table.insert(formdata, "queryParamVO.retDate=" .. bdate);
+
+local form_data = table.concat(formdata, "&");
+
+-- print(baseurl .. scenuri .. form_data)
+
+-- init response table
+local respbody = {};
+-- local hc = http:new()
+local body, code, headers, status = http.request {
+-- local ok, code, headers, status, body = http.request {
+	-- url = "http://cloudavh.com/data-gw/index.php",
+	url = baseurl .. scenuri .. form_data,
+	-- url = "http://localhost:3000/citycns",
+	-- proxy = "http://10.123.74.137:808",
+	-- proxy = "http://" .. tostring(arg[2]),
+	timeout = 3000,
+	method = "GET", -- POST or GET
+	-- add post content-type and cookie
+	-- headers = { ["Content-Type"] = "application/x-www-form-urlencoded", ["Content-Length"] = string.len(form_data) },
+	-- headers = { ["Host"] = "flight.itour.cn", ["X-AjaxPro-Method"] = "GetFlight", ["Cache-Control"] = "no-cache", ["Accept-Encoding"] = "gzip,deflate,sdch", ["Accept"] = "*/*", ["Origin"] = "chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm", ["Connection"] = "keep-alive", ["Content-Type"] = "application/json", ["Content-Length"] = string.len(JSON.encode(request)), ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36" },
+	headers = {
+		["Host"] = "flight.mangocity.com",
+		["Referer"] = "http://flight.mangocity.com/",
+		-- ["SOAPAction"] = "http://ctrip.com/Request",
+		-- ["Cache-Control"] = "no-cache",
+		-- ["Cache-Control"] = "max-age=0",
+		["Accept-Encoding"] = "gzip",
+		["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+		["Connection"] = "keep-alive",
+		["DNT"] = 1,
+		-- ["Content-Type"] = "text/xml; charset=utf-8",
+		-- ["Content-Type"] = "application/xml; charset=utf-8",
+		-- ["Content-Length"] = string.len(reqxml),
+		["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36"
+	},
+	-- body = formdata,
+	-- source = ltn12.source.string(form_data);
+	-- source = ltn12.source.string(reqxml),
+	sink = ltn12.sink.table(respbody)
+}
+if code == 200 then
+	local resxml = "";
+	local reslen = table.getn(respbody)
+	-- print(reslen)
+	for i = 1, reslen do
+		-- print(respbody[i])
+		resxml = resxml .. respbody[i]
+	end
+	
+	local output = {}
+	deflate.gunzip {
+	  input = resxml,
+	  output = function(byte) output[#output+1] = string.char(byte) end
+	}
+	resxml = table.concat(output)
+	
+	print(resxml)
+else
+	-- debug
+	print(code,status)
+end
+
+--[[
 -- {"Version=" + version,"AccountID=" + accountId, "ServiceName="+methodName, "ReqTime="+ reqTime}
 local signtab = { "Version=" .. xv, "AccountID=" .. ad, "ServiceName=" .. sn, "ReqTime=" .. ts }
 -- print(JSON.encode(signtab))
@@ -277,3 +359,4 @@ else
 	-- debug
 	print(code,status)
 end
+--]]
