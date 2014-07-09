@@ -24,6 +24,15 @@ module.exports = {
 			 required: true,
 			 primaryKey: true
 		 },
+		 //scenery|userob|hotelob|product|(7)
+		 object_type: {
+             type: 'string',
+			 required: true,
+			 index: true,
+			 minLength: 7,
+			 maxLength: 7
+			 //unique: true
+		 },
 		 //default 0
 		 term_order: {
 			 type: 'integer',

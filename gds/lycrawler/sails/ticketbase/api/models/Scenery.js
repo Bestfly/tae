@@ -19,7 +19,8 @@ module.exports = {
 		 DivisionId: {
 			 model: 'Division',
 			 columnName: 'DivisionId',
-			 required: true,
+			 //有些景点没有区划信息
+			 required: false,
 			 index: true
 		 },
 		 // 保留LY的Id
@@ -98,10 +99,10 @@ module.exports = {
 		 },
 		 address: {
              type: 'string',
-			 minLength: 10,
+			 minLength: 3,
 			 maxLength: 120,
-			 required: true,
-			 unique: true
+			 required: true
+			 //unique: true#同一地址可能多个景点
 			 //index: true
 		 },
 		 // 交通指南
@@ -111,9 +112,9 @@ module.exports = {
 		 },
 		 summary: {
              type: 'string',
-			 minLength: 10,
-			 maxLength: 250,
-			 required: true,
+			 minLength: 2,
+			 maxLength: 600,
+			 required: true
 			 //unique: true
 			 //index: true
 		 },
@@ -125,8 +126,8 @@ module.exports = {
 		 imgPath: {
              type: 'url',
 			 minLength: 15,
-			 required: true,
-			 unique: true
+			 required: false
+			 //unique: true
 		 },
 		 
 		 // -1：暂时下线, 0：不可预订, 1：可预订
@@ -137,7 +138,7 @@ module.exports = {
 		 
 		 // 是否需要证件
 		 ifUseCard: {
-             type: 'boolean',
+             type: 'integer',
              required: false
 		 },
 		 LowestPrice: {

@@ -1,4 +1,7 @@
 local JSON = require 'cjson'
+-- load library
+local socket = require 'socket'
+local http = require 'socket.http'
 
 lines = {
 luaH_set = 10,
@@ -62,3 +65,65 @@ end
 decode (s)
 
 print(JSON.encode(cgi))
+
+local a = "38.80"
+local b = "38.00"
+print(tonumber(a),tonumber(b))
+
+package.path = "/usr/local/webserver/lua/lib/?.lua;";
+
+local redis = require 'redis'
+local params = {
+    host = '127.0.0.1',
+    port = 6399,
+}
+local client = redis.connect(params)
+client:select(0) -- for testing purposes
+-- commands defined in the redis.commands table are available at module
+-- level and are used to populate each new client instance.
+redis.commands.hset = redis.command('hset')
+redis.commands.hset = redis.command('hget')
+redis.commands.incr = redis.command('incr')
+redis.commands.setnx = redis.command('setnx')
+redis.commands.hset = redis.command('hsetnx')
+redis.commands.sadd = redis.command('sadd')
+redis.commands.zadd = redis.command('zadd')
+redis.commands.smembers = redis.command('smembers')
+redis.commands.keys = redis.command('keys')
+redis.commands.sdiff = redis.command('sdiff')
+
+local res, err = client:keys('sce:lycom:city:*')
+if not res then
+	print("+++++++++error++++++++")
+else
+	-- print(type(res))
+	local j = 0
+	for i = 1, table.getn(res) do
+		-- print(res[i])
+		r,e = client:hlen(res[i])
+		-- print(r)
+		j = j + r
+	end
+	print(j)
+end
+
+local luasql = require "luasql.mysql"
+local env = assert(luasql.mysql())
+-- base_flights_city
+local con = assert (env:connect("ticketbase", "rhomobi_dev", "b6x7p6b6x7p6", "localhost", 3306))
+-- local con = assert (env:connect("biyifei_base", "rhomobi_dev", "b6x7p6b6x7p6", "localhost", 3306))
+con:execute("SET NAMES utf8")
+local sqlcmd = "SELECT `CityId`, `sLyId` FROM `scenery`";
+local cur = assert (con:execute(sqlcmd))
+local row = cur:fetch ({}, "a")
+while row do
+	print(row.CityId,row.sLyId)
+	local res, err = client:hset('sce:lycom:city:' .. row.CityId, row.sLyId, 0)
+	if not res then
+		print("-------Failed to hset " .. row.CityId .. ":" .. row.sLyId .. "--------")
+	else
+		print("-------well done " .. row.CityId .. ":" .. row.sLyId .. "--------")
+	end
+	row = cur:fetch (row, "a")
+end
+cur:close()

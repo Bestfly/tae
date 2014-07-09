@@ -15,11 +15,11 @@ local crypto = require 'crypto'
 -- local client = require 'soap.client'
 package.path = "/usr/local/webserver/lua/lib/?.lua;";
 local xml = require 'LuaXml'
---[[
+
 local redis = require 'redis'
 local params = {
-    host = 'sin.bestfly.cn',
-    port = 61088,
+    host = '127.0.0.1',
+    port = 6399,
 }
 local client = redis.connect(params)
 client:select(0) -- for testing purposes
@@ -35,7 +35,7 @@ redis.commands.zadd = redis.command('zadd')
 redis.commands.smembers = redis.command('smembers')
 redis.commands.keys = redis.command('keys')
 redis.commands.sdiff = redis.command('sdiff')
---]]
+
 local deflate = require 'compress.deflatelua'
 -- local baselua = require 'base64'
 -- local t = {}
@@ -492,114 +492,20 @@ for keyid,vcLyId in pairs(citycn) do
 						resly["address"] = string.sub(sl[i]["sceneryAddress"], 10, -4)
 					end
 					-- resly["traffic"]
-					resly["summary"] = string.sub(sl[i]["scenerySummary"], 10, -4)
+					if sl[i]["scenerySummary"] ~= nil then
+						resly["summary"] = string.sub(sl[i]["scenerySummary"], 10, -4)
+					end
 					-- resly["SceneryDetail"]
 					if sl[i]["imgPath"] ~= nil and sl[i]["imgPath"] ~= "" then
 						resly["imgPath"] = imgbaseURL .. string.sub(sl[i]["imgPath"], 10, -4)
 					end
 					resly["bookFlag"] = tonumber(sl[i]["bookFlag"]);
-					-- print(sl[i]["sceneryId"])
-					local resxml, rescode = GetScenery(sl[i]["sceneryId"],GetSceneryDetail,2)
-					if rescode ~= 1 then
-						local pr_xml = xml.eval(resxml);
-						local xscene = pr_xml:find("response");
-						-- xscene maybe nil
-						if xscene ~= nil then
-							local rspCode = ""
-							for k,v in pairs(xscene[1]) do
-								if k > 0 then
-									if type(v) == "table" then
-										if v[0] == "rspCode" then
-											rspCode = v[1];
-										end
-									end
-								end
-							end
-							-- print(rspCode)
-							local sd = {}
-							for k,v in pairs(xscene[2][1]) do
-								if k > 0 then
-									if type(v) == "table" then
-										if v[0] ~= "theme" then
-											sd[v[0]] = v[1]
-										else
-											-- print(type(v[1][1]))
-											-- print(v[2][1])
-											resly["remark"] = v[2][1]
-										end
-									end
-								end
-							end
-							-- print(JSON.encode(sd))
-							resly["LowestPrice"] = tonumber(sd["amountAdvice"])
-							resly["ifUseCard"] = tonumber(sd["ifUseCard"])
-							if sd["sceneryAlias"] ~= nil then
-								resly["aliasName"] = sd["sceneryAlias"]
-							end
-							resly["SceneryDetail"] = sd["intro"]
-							resly["buyNotie"] = sd["buyNotice"]
-							if sd["payMode"] == "景区支付" then
-								resly["payMode"] = 1
-							end
-							resly["blon"] = sd["lon"]
-							resly["blat"] = sd["lat"]
-						else
-							print(error003(resxml))
-						end
+					local res, err = client:hset('sce:lycom:city:' .. keyid, sl[i]["sceneryId"], 1)
+					if not res then
+						print("-------Failed to hset " .. keyid .. ":" .. sl[i]["sceneryId"] .. "--------")
 					else
-						print("+++++++++++++++++")
-						print(JSON.encode(resly))
-						print("+++++++++++++++++")
+						print("-------well done " .. keyid .. ":" .. sl[i]["sceneryId"] .. "--------")
 					end
-					sleep(1)
-					-- print(JSON.encode(resly))
-					-- init response table
-					local respbody = {};
-					-- local hc = http:new()
-					local body, code, headers, status = http.request {
-					-- local ok, code, headers, status, body = http.request {
-						url = "http://localhost:1337/scenery/",
-						-- proxy = "http://10.123.74.137:808",
-						-- proxy = "http://" .. tostring(arg[2]),
-						timeout = 3000,
-						method = "POST", -- POST or GET
-						-- add post content-type and cookie
-						-- headers = { ["Content-Type"] = "application/x-www-form-urlencoded", ["Content-Length"] = string.len(form_data) },
-						-- headers = { ["Host"] = "flight.itour.cn", ["X-AjaxPro-Method"] = "GetFlight", ["Cache-Control"] = "no-cache", ["Accept-Encoding"] = "gzip,deflate,sdch", ["Accept"] = "*/*", ["Origin"] = "chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm", ["Connection"] = "keep-alive", ["Content-Type"] = "application/json", ["Content-Length"] = string.len(JSON.encode(request)), ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36" },
-						headers = {
-							-- ["Host"] = "tcopenapi.17usoft.com",
-							-- ["SOAPAction"] = "http://ctrip.com/Request",
-							["Cache-Control"] = "no-cache",
-							-- ["Accept-Encoding"] = "gzip",
-							["Accept"] = "*/*",
-							["Connection"] = "keep-alive",
-							-- ["Content-Type"] = "text/xml; charset=utf-8",
-							["Content-Type"] = "application/json; charset=utf-8",
-							["Content-Length"] = string.len(JSON.encode(resly)),
-							["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36"
-						},
-						-- body = formdata,
-						-- source = ltn12.source.string(form_data);
-						source = ltn12.source.string(JSON.encode(resly)),
-						sink = ltn12.sink.table(respbody)
-					}
-					if code == 200 then
-						print(code)
-						print("-----Write to Mysql Success-------")
-						print(status)
-						print(body)
-					else
-						print(code)
-						print("-----Write to Mysql Failure-------")
-						print(status)
-						for k,v in pairs(headers) do
-							print(k, v)
-						end
-						print("+++++++++++++++++")
-						print(JSON.encode(resly))
-						print("+++++++++++++++++")
-					end
-					-- break;
 				end
 			else
 				print(error003(resxml))

@@ -20,7 +20,7 @@ module.exports = {
              type: 'string',
 			 required: true,
 			 index: true,
-			 unique: true
+			 //unique: true
 		 },
          description: {
              type: 'string',

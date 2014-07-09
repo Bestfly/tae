@@ -5,8 +5,8 @@
 -- begin of the idea : http://jijilu.com/
 -- http://lua-users.org/wiki/
 -- load library
-local socket = require("socket")
-local http = require("socket.http")
+-- local socket = require("socket")
+-- local http = require("socket.http")
 local ltn12 = require 'ltn12'
 local JSON = require 'cjson'
 package.path = "/usr/local/webserver/lua/lib/?.lua;";

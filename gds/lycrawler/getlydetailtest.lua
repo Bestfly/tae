@@ -157,7 +157,7 @@ local GetSceneryTrafficInfo = "GetSceneryTrafficInfo"
 local GetNearbyScenery = "GetNearbyScenery"
 local GetSceneryImageList = "GetSceneryImageList"
 -- local sn = GetCountyList
-local sn = GetSceneryList
+local sn = GetSceneryDetail
 -- local org = string.sub(arg[1], 1, 3);
 -- local dst = string.sub(arg[1], 5, 7);
 -- local tkey = string.sub(arg[1], 9, -3);
@@ -196,7 +196,7 @@ local Scenerylist = ([=[<clientIp>127.0.0.1</clientIp>
 	<cityId>321</cityId>
 	<page>3</page>
 	<pageSize>10</pageSize>]=])
-local Scenerybody = ([=[<sceneryId>28405</sceneryId>]=])
+local Scenerybody = ([=[<sceneryId>28305</sceneryId><cs>2</cs>]=])
 local nearbyScenerylist = ([=[<sceneryId>28405</sceneryId>
 	<page>3</page>
 	<pageSize>10</pageSize>]=])
@@ -213,7 +213,7 @@ local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 	<body>
 		%s
 	</body>
-</request>]=]):format(xv, ad, sn, signmd5, ts, Scenerylist)
+</request>]=]):format(xv, ad, sn, signmd5, ts, Scenerybody)
 -- reqxml = string.gsub(reqxml, "<", "&lt;")
 print(reqxml)
 print("-----------------")
@@ -277,8 +277,9 @@ if code == 200 then
 	local idx2 = string.find(resxml, "</response>");
 	if idx1 ~= nil and idx2 ~= nil then
 		local prdata = string.sub(resxml, idx1, idx2+11);
-		-- print(prdata)
+		print(prdata)
 		print("-----------------")
+		--[[
 		local pr_xml = collect(prdata);
 		local rspCode = "";
 		for i = 1, table.getn(pr_xml[1][1]) do
@@ -286,28 +287,7 @@ if code == 200 then
 				rspCode = pr_xml[1][1][i][1]
 			end
 		end
-		if rspCode == "0000" then
-			local sl = {};
-			local imgbaseURL = "";
-			print(table.getn(pr_xml[1][2]))
-			for i = 1, table.getn(pr_xml[1][2]) do
-				if pr_xml[1][2][i]["label"] == "sceneryList" then
-					-- print(table.getn(pr_xml[1][2][i]))
-					print(pr_xml[1][2][i]["xarg"]["imgbaseURL"])
-					
-					for j = 1, table.getn(pr_xml[1][2][i]) do
-						if pr_xml[1][2][i][j]["label"] == "scenery" then
-							local sd = {};
-							for k = 1, table.getn(pr_xml[1][2][i][j]) do
-								sd[pr_xml[1][2][i][j][k]["label"]] = pr_xml[1][2][i][j][k][1]
-							end
-							table.insert(sl, sd);
-						end
-					end
-				end
-			end
-			print(imgbaseURL)
-		end
+		--]]
 	end
 else
 	-- debug
