@@ -500,6 +500,7 @@ for keyid,vcLyId in pairs(citycn) do
 						resly["imgPath"] = imgbaseURL .. string.sub(sl[i]["imgPath"], 10, -4)
 					end
 					resly["bookFlag"] = tonumber(sl[i]["bookFlag"]);
+					-- 初始化待处理为1
 					local res, err = client:hset('sce:lycom:city:' .. keyid, sl[i]["sceneryId"], 1)
 					if not res then
 						print("-------Failed to hset " .. keyid .. ":" .. sl[i]["sceneryId"] .. "--------")

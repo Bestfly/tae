@@ -73,12 +73,14 @@ print(tonumber(a),tonumber(b))
 package.path = "/usr/local/webserver/lua/lib/?.lua;";
 
 local redis = require 'redis'
+--[[
 local params = {
     host = '127.0.0.1',
     port = 6399,
 }
 local client = redis.connect(params)
 client:select(0) -- for testing purposes
+--]]
 -- commands defined in the redis.commands table are available at module
 -- level and are used to populate each new client instance.
 redis.commands.hset = redis.command('hset')
@@ -92,6 +94,13 @@ redis.commands.smembers = redis.command('smembers')
 redis.commands.keys = redis.command('keys')
 redis.commands.sdiff = redis.command('sdiff')
 
+local preview = {
+    host = '10.10.42.31',
+    port = 6399,
+}
+local precli = redis.connect(preview)
+precli:select(0)
+--[[
 local res, err = client:keys('sce:lycom:city:*')
 if not res then
 	print("+++++++++error++++++++")
@@ -127,3 +136,29 @@ while row do
 	row = cur:fetch (row, "a")
 end
 cur:close()
+--]]
+
+local res, err = precli:keys('sce:lycom:city:*')
+if not res then
+	print("+++++++++error++++++++")
+else
+	-- print(type(res))
+	-- local j = 0
+	for i = 1, table.getn(res) do
+		-- print(res[i])
+		-- r,e = precli:hlen(res[i])
+		r,e = precli:hkeys(res[i])
+		-- print(r)
+		for k,v in pairs(r) do
+			-- print(v)
+			-- 初始化待处理为1
+			r,e = precli:hget(res[i], v)
+			-- print("+++++++++++++++++")
+			-- print(type(res))
+			if tonumber(r) ~= 0 then
+				print(res[i],v)
+			end
+		end
+	end
+	-- print(j)
+end

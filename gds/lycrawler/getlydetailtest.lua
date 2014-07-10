@@ -14,7 +14,7 @@ local base64 = require 'base64'
 local crypto = require 'crypto'
 -- local client = require 'soap.client'
 package.path = "/usr/local/webserver/lua/lib/?.lua;";
--- local xml = require 'LuaXml'
+local xml = require 'LuaXml'
 --[[
 local redis = require 'redis'
 local params = {
@@ -180,14 +180,14 @@ signstr = string.sub(signstr, 0, -2) .. ak
 -- print(signstr)
 local signmd5 = md5.sumhexa(signstr)
 -- print("-----------------")
-print(signmd5)
-print(signstr)
+-- print(signmd5)
+-- print(signstr)
 -- Signature=Md5(TimeStamp+AllianceID+MD5(密钥).ToUpper()+SID+RequestType).ToUpper()
 -- local ts = "1380250839"
 -- local sign = string.upper(md5.sumhexa(ts .. unicode .. string.upper(md5.sumhexa(apikey)) .. siteid .. "OTA_IntlFlightSearch"))
-print("-----------------")
+-- print("-----------------")
 -- Get city
-print(ts)
+-- print(ts)
 -- print(sign)
 -- print(string.upper(org), string.upper(dst), date, today)
 local Citybody = ([=[<provinceId>%s</provinceId>]=]):format(2)
@@ -196,11 +196,11 @@ local Scenerylist = ([=[<clientIp>127.0.0.1</clientIp>
 	<cityId>321</cityId>
 	<page>3</page>
 	<pageSize>10</pageSize>]=])
-local Scenerybody = ([=[<sceneryId>28305</sceneryId><cs>2</cs>]=])
+local Scenerybody = ([=[<sceneryId>181530</sceneryId><cs>1</cs>]=])
 local nearbyScenerylist = ([=[<sceneryId>28405</sceneryId>
 	<page>3</page>
 	<pageSize>10</pageSize>]=])
-print("------------------------------------------")
+-- print("------------------------------------------")
 local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 <request>
 	<header>
@@ -215,8 +215,8 @@ local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 	</body>
 </request>]=]):format(xv, ad, sn, signmd5, ts, Scenerybody)
 -- reqxml = string.gsub(reqxml, "<", "&lt;")
-print(reqxml)
-print("-----------------")
+-- print(reqxml)
+-- print("-----------------")
 -- init response table
 local respbody = {};
 -- local hc = http:new()
@@ -277,8 +277,8 @@ if code == 200 then
 	local idx2 = string.find(resxml, "</response>");
 	if idx1 ~= nil and idx2 ~= nil then
 		local prdata = string.sub(resxml, idx1, idx2+11);
-		print(prdata)
-		print("-----------------")
+		-- print(prdata)
+		-- print("-----------------")
 		--[[
 		local pr_xml = collect(prdata);
 		local rspCode = "";
@@ -288,6 +288,53 @@ if code == 200 then
 			end
 		end
 		--]]
+		local pr_xml = xml.eval(prdata);
+		local xscene = pr_xml:find("response");
+		local resly = {};
+		if xscene ~= nil then
+			local rspCode = ""
+			for k,v in pairs(xscene[1]) do
+				if k > 0 then
+					if type(v) == "table" then
+						if v[0] == "rspCode" then
+							rspCode = v[1];
+						end
+					end
+				end
+			end
+			-- print(rspCode)
+			local sd = {}
+			for k,v in pairs(xscene[2][1]) do
+				if k > 0 then
+					if type(v) == "table" then
+						if v[0] ~= "theme" then
+							sd[v[0]] = v[1]
+						else
+							-- print(type(v[1][1]))
+							-- print(v[2][1])
+							resly["remark"] = v[2][1]
+						end
+					end
+				end
+			end
+			-- print(JSON.encode(sd))
+			--[[
+			resly["LowestPrice"] = tonumber(sd["amountAdvice"])
+			resly["ifUseCard"] = tonumber(sd["ifUseCard"])
+			if sd["sceneryAlias"] ~= nil then
+				resly["aliasName"] = sd["sceneryAlias"]
+			end
+			resly["SceneryDetail"] = sd["intro"]
+			if sd["payMode"] == "景区支付" then
+				resly["payMode"] = 1
+			end
+			--]]
+			resly["buyNotie"] = sd["buyNotice"]
+			resly["glon"] = sd["lon"]
+			resly["glat"] = sd["lat"]
+			print(resly["buyNotie"])
+			print(resly["glon"],resly["glat"])
+		end
 	end
 else
 	-- debug

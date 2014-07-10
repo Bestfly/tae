@@ -139,7 +139,7 @@ function urlformdecode (s)
 	return cgi
 end
 -- base
-local baseurl = "http://10.10.1.143";
+local baseurl = "http://10.10.38.103";
 -- main
 if ngx.var.request_method == "GET" then
 	ngx.say(ngx.var.srvname, ngx.var.sceneid)
