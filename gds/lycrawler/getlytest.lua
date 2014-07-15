@@ -157,7 +157,7 @@ local GetSceneryTrafficInfo = "GetSceneryTrafficInfo"
 local GetNearbyScenery = "GetNearbyScenery"
 local GetSceneryImageList = "GetSceneryImageList"
 -- local sn = GetCountyList
-local sn = GetSceneryList
+local sn = GetSceneryDetail
 -- local org = string.sub(arg[1], 1, 3);
 -- local dst = string.sub(arg[1], 5, 7);
 -- local tkey = string.sub(arg[1], 9, -3);
@@ -193,10 +193,10 @@ print(ts)
 local Citybody = ([=[<provinceId>%s</provinceId>]=]):format(2)
 local Division = ([=[<cityId>%s</cityId>]=]):format(321)
 local Scenerylist = ([=[<clientIp>127.0.0.1</clientIp>
-	<cityId>321</cityId>
-	<page>3</page>
-	<pageSize>10</pageSize>]=])
-local Scenerybody = ([=[<sceneryId>28405</sceneryId>]=])
+	<cityId>80</cityId>
+	<page>1</page>
+	<pageSize>100</pageSize>]=])
+local Scenerybody = ([=[<sceneryId>18007</sceneryId>]=])
 local nearbyScenerylist = ([=[<sceneryId>28405</sceneryId>
 	<page>3</page>
 	<pageSize>10</pageSize>]=])
@@ -213,7 +213,7 @@ local reqxml = ([=[<?xml version='1.0' encoding='utf-8'?>
 	<body>
 		%s
 	</body>
-</request>]=]):format(xv, ad, sn, signmd5, ts, Scenerylist)
+</request>]=]):format(xv, ad, sn, signmd5, ts, Scenerybody)
 -- reqxml = string.gsub(reqxml, "<", "&lt;")
 print(reqxml)
 print("-----------------")
@@ -270,7 +270,7 @@ if code == 200 then
 	-- resxml = zlib.decompress(resxml)
 	-- resxml = string.gsub(resxml, "&lt;", "<")
 	-- resxml = string.gsub(resxml, "&gt;", ">")
-	-- print(resxml)
+	print(resxml)
 	-- local pr_xml = xml.eval(resxml);
 	-- local xscene = pr_xml:find("response");
 	local idx1 = string.find(resxml, "<response>");

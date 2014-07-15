@@ -42,7 +42,8 @@ module.exports.connections = {
     port     : 3306,
     user     : 'rhomobi_dev',
     password : 'b6x7p6b6x7p6',
-    database : 'ticketbase'
+    //database : 'ticketbase'
+	database : 'qiyou'
 
     // OR (explicit sets take precedence)
     // module   : 'sails-mysql',
