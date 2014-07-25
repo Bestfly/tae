@@ -153,22 +153,34 @@ if ngx.var.request_method == "POST" then
 						local srvname = harg["ServiceName"];
 						if srvname == "hotel.list" then
 							baseurl = "http://10.10.38.103/";
-							scenuri = "HOI/hotel/query/list";
+							scenuri = "HotelQuery/hotel/query/list";
 						else
 							if srvname == "hotel.detail" then
 								baseurl = "http://10.10.38.103/";
-								scenuri = "HOI/hotel/query/detail";
+								scenuri = "HotelQuery/hotel/query/detail";
 							else
 								if srvname == "hotel.order.create" then
-									baseurl = "http://10.10.37.103/";
+									baseurl = "http://10.10.38.103/";
 									scenuri = "HotelOrder/hotel/order/create";
 								else
 									if srvname == "hotel.booking.try" then
-										baseurl = "http://10.10.37.103/";
+										baseurl = "http://10.10.38.103/";
 										scenuri = "HotelOrder/hotel/booking/try";
 									else
-										baseurl = JSON.null
-										scenuri = JSON.null
+										-- hotel.payment.online
+										if srvname == "hotel.payment.online" then
+											baseurl = "http://10.10.38.103/";
+											scenuri = "HotelOrder/hotel/payment/online";
+										else
+											if srvname == "ship.list" then
+												-- 10.10.224.72:8080/ships/ship-member-order.shtml
+												baseurl = "http://10.10.224.72:8080/";
+												scenuri = "ships/ship-member-order.shtml";
+											else
+												baseurl = JSON.null
+												scenuri = JSON.null
+											end
+										end
 									end
 								end
 							end
@@ -179,7 +191,7 @@ if ngx.var.request_method == "POST" then
 								url = baseurl .. scenuri,
 								-- url = "http://localhost:4000/citycns",
 								-- proxy = "http://10.123.74.137:808",
-								timeout = 3000,
+								timeout = 6000,
 								method = "POST", -- POST or GET
 								headers = {
 									-- ["Host"] = "tcopenapi.17usoft.com",
@@ -200,7 +212,13 @@ if ngx.var.request_method == "POST" then
 							if code == 200 then
 								ngx.print(body);
 							else
-								ngx.print(error009(code, body))
+								-- ngx.say("-------" .. code .. "+++++++++")
+								-- if code == nil or code == JSON.null or code == "" then
+								if tonumber(code) ~= nil then
+									ngx.print(error009(code, body))
+								else
+									ngx.print(error000(code))
+								end
 							end
 						else
 							ngx.print(error003)
