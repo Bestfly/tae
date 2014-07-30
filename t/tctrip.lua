@@ -42,11 +42,11 @@ end
 -- http://yougola.sinaapp.com/checker/?intl/ctrip/20131130.20131230/bjslon
 local sinaapp = false;
 -- local baseurl = "http://yougola.sinaapp.com/";
-local baseurl = "http://api.bestfly.cn/";
+local baseurl = "http://api.bestfly.cn:3000/";
 -- local md5uri = "taei?intl/ctrip/20131130.20131230/bjslon";
 -- &intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&
-local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
--- local md5uri = "tae"
+-- local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
+local md5uri = "tae"
 local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRg";
 local appid = "142ffb5bfa1-cn-jijilu-dg-c01";
 local timestamp = os.time() + 1200;
