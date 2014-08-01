@@ -1,4 +1,4 @@
--- Jijilu <jijilu.huang@mangocity.com> 20140615 (v0.5.1)
+-- Jijilu <jijilu.huang@mangocity.com> 20140730 (v0.5.2)
 -- License: same to the Lua one
 -- TODO: copy the LICENSE file
 -------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ end
 local error003 = JSON.encode({ ["resultCode"] = 3, ["description"] = "error003#Please input the ServiceName or Request body"});
 local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#StartDate Not found in your headers"});
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#Get IP from Queues is no result"});
-local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#No IP left, Please buy more"});
+local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#NGX DICT ERROR"});
 function error009 (code, mes)
 	local res = JSON.encode({ ["resultCode"] = code, ["description"] = mes});
 	return res
@@ -118,20 +118,11 @@ function collect(s)
 	end
 	return stack[1]
 end
+-- init the DICT.
+local sg = ngx.shared.sgcore;
 -- Main
-local ad = "54807975-9730-4850-b6b4-862128352ab4"
-local ak = "856474380e125a41" 
-local xv = "20111128102912"
-local GetSceneryList = "GetSceneryList"
-local GetSceneryDetail = "GetSceneryDetail"
-local GetSceneryTrafficInfo = "GetSceneryTrafficInfo"
-local GetNearbyScenery = "GetNearbyScenery"
-local GetSceneryImageList = "GetSceneryImageList"
-local GetSceneryPrice = "GetSceneryPrice"
-local GetPriceCalendar = "GetPriceCalendar"
 -- api url
-local baseurl = "";
-local scenuri = "";
+local forwarduri = ""
 local verifykey = "19958883-A3B8-4B67-93F3-F73F47B20340";
 if ngx.var.request_method == "POST" then
 	ngx.req.read_body();
@@ -151,44 +142,12 @@ if ngx.var.request_method == "POST" then
 					else
 						-- Forward Controller
 						local srvname = harg["ServiceName"];
-						if srvname == "hotel.list" then
-							baseurl = "http://10.10.38.103/";
-							scenuri = "HotelQuery/hotel/query/list";
-						else
-							if srvname == "hotel.detail" then
-								baseurl = "http://10.10.38.103/";
-								scenuri = "HotelQuery/hotel/query/detail";
-							else
-								if srvname == "hotel.order.create" then
-									baseurl = "http://10.10.38.103/";
-									scenuri = "HotelOrder/hotel/order/create";
-								else
-									if srvname == "hotel.booking.try" then
-										baseurl = "http://10.10.38.103/";
-										scenuri = "HotelOrder/hotel/booking/try";
-									else
-										-- hotel.payment.online
-										if srvname == "hotel.payment.online" then
-											baseurl = "http://10.10.38.103/";
-											scenuri = "HotelOrder/hotel/payment/online";
-										else
-											if srvname == "ship.list" then
-												-- 10.10.224.72:8080/ships/ship-member-order.shtml
-												baseurl = "http://10.10.224.72:8080/";
-												scenuri = "ships/ship-member-order.shtml";
-											else
-												baseurl = JSON.null
-												scenuri = JSON.null
-											end
-										end
-									end
-								end
-							end
-						end
-						if baseurl ~= JSON.null and scenuri ~= JSON.null then
+						forwarduri = sg:get(srvname);
+						if forwarduri ~= JSON.null and forwarduri ~= nil then
+						-- if baseurl ~= JSON.null and scenuri ~= JSON.null then
 							local hc = http:new()
 							local ok, code, headers, status, body = hc:request {
-								url = baseurl .. scenuri,
+								url = forwarduri,
 								-- url = "http://localhost:4000/citycns",
 								-- proxy = "http://10.123.74.137:808",
 								timeout = 6000,
@@ -221,7 +180,11 @@ if ngx.var.request_method == "POST" then
 								end
 							end
 						else
-							ngx.print(error003)
+							if forwarduri == "" then
+								ngx.print(error006)
+							else
+								ngx.print(error003)
+							end
 						end
 					end
 				else

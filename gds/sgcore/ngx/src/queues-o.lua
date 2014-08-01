@@ -33,6 +33,11 @@ if not ok then
 	ngx.say("failed to connect redis: ", err)
 	return
 end
+local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
+if not r then
+    ngx.say("failed to authenticate: ", e)
+    return
+end
 -- end of nosql init.
 if ngx.var.request_method == "GET" then
 	local task = {};

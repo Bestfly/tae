@@ -44,7 +44,7 @@ if not ok then
 	ngx.say("failed to connect redis: ", err)
 	return
 end
-local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a01")
+local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
 if not r then
     ngx.say("failed to authenticate: ", e)
     return

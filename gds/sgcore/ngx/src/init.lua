@@ -7,16 +7,18 @@
 local sg = ngx.shared.sgcore;
 sg:flush_all();
 -- load mysql forward data into kvdb
-local rfile = io.open("/usr/local/webserver/lua/cncity.ini", "r");
--- print(type(rfile));
--- local citytab = {};
-for line in rfile:lines() do
-	city:set(line, true);
+local luasql = require "luasql.mysql"
+local env = assert(luasql.mysql())
+-- base_flights_city
+local con = assert (env:connect("servicegate", "srvg", "srvg321'", "10.10.40.57", 3306))
+-- local con = assert (env:connect("biyifei_base", "rhomobi_dev", "b6x7p6b6x7p6", "localhost", 3306))
+con:execute("SET NAMES utf8")
+-- local sqlcmd = "SELECT `serviceName`, `serviceUrl` FROM `tbl_service_map` WHERE `typeId` = '2'";
+local sqlcmd = "SELECT `serviceName`, `serviceUrl` FROM `tbl_service_map`";
+local cur = assert (con:execute(sqlcmd))
+local row = cur:fetch ({}, "a")
+while row do
+	sg:set(row.serviceName, ngx.encode_base64(row.serviceUrl));
+	row = cur:fetch (row, "a")
 end
-io.close(rfile);
--- load airport.ini
-local afile = io.open("/usr/local/webserver/lua/airport.ini", "r");
-for line in afile:lines() do
-	port:set(line, true);
-end
-io.close(afile);
+cur:close();
