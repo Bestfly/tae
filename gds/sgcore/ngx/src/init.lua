@@ -18,7 +18,7 @@ local sqlcmd = "SELECT `serviceName`, `serviceUrl` FROM `tbl_service_map`";
 local cur = assert (con:execute(sqlcmd))
 local row = cur:fetch ({}, "a")
 while row do
-	sg:set(row.serviceName, ngx.encode_base64(row.serviceUrl));
+	sg:set(row.serviceName, row.serviceUrl)
 	row = cur:fetch (row, "a")
 end
 cur:close();
