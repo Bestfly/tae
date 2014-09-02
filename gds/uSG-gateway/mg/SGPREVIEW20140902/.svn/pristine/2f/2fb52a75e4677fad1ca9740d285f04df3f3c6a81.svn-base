@@ -1,4 +1,4 @@
--- Jijilu <jijilu.huang@mangocity.com> 20140730 (v0.5.7)
+-- Jijilu <jijilu.huang@mangocity.com> 20140730 (v0.5.2)
 -- License: same to the Lua one
 -- TODO: copy the LICENSE file
 -------------------------------------------------------------------------------
@@ -157,15 +157,14 @@ if ngx.var.request_method == "POST" then
 									-- ["SOAPAction"] = "http://ctrip.com/Request",
 									["uid"] = harg["uid"],
 									["sid"] = harg["sid"],
-									-- ["Data-Format"] = "json",
-									["Data-Format"] = harg["data-format"],
+									["Data-Format"] = "json",
 									["Cache-Control"] = "no-cache",
 									-- ["Accept-Encoding"] = "gzip",
 									["Accept"] = "*/*",
 									["Connection"] = "keep-alive",
 									["Content-Type"] = "application/json; charset=utf-8",
 									["Content-Length"] = string.len(pcontent),
-									["User-Agent"] = "Rhongx by huangqi for uMsg-Gateway v0.5.7"
+									["User-Agent"] = "Rhongx by huangqi for Hotel Service Gateway v0.5.1"
 								},
 								body = pcontent,
 							}

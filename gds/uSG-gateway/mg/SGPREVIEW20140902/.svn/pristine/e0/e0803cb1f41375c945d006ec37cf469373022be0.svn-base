@@ -2,11 +2,9 @@ user  www www;
 
 worker_processes 1;
 
-error_log  /data/logs/nginx_error.log  debug_http;
-#error_log  /data/logs/nginx_error.log  crit;
-
+#error_log  /data/logs/nginx_error.log  debug_http;
+error_log  /data/logs/nginx_error.log  crit;
 pid        /usr/local/webserver/rhongx/nginx.pid;
- 
 #Specifies the value for maximum file descriptors that can be opened by this process.
 worker_rlimit_nofile 65535;
 
@@ -20,20 +18,19 @@ http
 {
   #include       mime.types;
   #default_type  application/octet-stream;
- 
   #charset  gb2312;
-
+  
   client_header_buffer_size 32k;
   large_client_header_buffers 4 32k;
-  client_max_body_size 8m;
-
+  client_max_body_size 10m;
+  
   sendfile on;
   tcp_nopush     on;
-
+  
   keepalive_timeout 120;
-
+  
   tcp_nodelay on;
-
+  
   fastcgi_connect_timeout 300;
   fastcgi_send_timeout 300;
   fastcgi_read_timeout 300;
@@ -41,7 +38,7 @@ http
   fastcgi_buffers 4 64k;
   fastcgi_busy_buffers_size 128k;
   fastcgi_temp_file_write_size 128k;
-
+  
   proxy_connect_timeout 600;
   proxy_read_timeout 600;
   proxy_send_timeout 600;
@@ -49,14 +46,14 @@ http
   proxy_buffers    4 64k;
   proxy_busy_buffers_size 128k;
   proxy_temp_file_write_size 128k;
-
+  
   proxy_set_header X-Forwarded-For $remote_addr;
   proxy_set_header Connection Close;
   server_names_hash_max_size 1024;
   server_names_hash_bucket_size 1024;
   proxy_cache_path  /tmp/cache  levels=1:2  keys_zone=rhomobi:1m inactive=3d max_size=80m;
   proxy_temp_path   /tmp/proxy;
- 
+  
   gzip on;
   gzip_min_length  1k;
   gzip_buffers     4 16k;
@@ -66,17 +63,24 @@ http
   gzip_vary on;
   
   upload_progress proxied 1m;
+  lua_shared_dict sgcore 32k;
   lua_package_path "/data/sgcore/ngx/lib/?.lua;;";
+  init_by_lua_file /data/sgcore/ngx/src/usgateway/init.lua;
+  
+  log_format uSG-gateway '$remote_addr - $remote_user [$time_local]'
+                            '"$request" $status $body_bytes_sent'
+                            '"$http_referer" "$http_user_agent"';
+  open_log_file_cache max=1000 inactive=20s min_uses=1 valid=1m;
   
   server
   {
-    resolver     10.10.12.19;
+    resolver     10.10.1.20;
     listen       80;
-    server_name  api.mangocity.com;
+    server_name  sg1.mangocity.com;
     index index.html index.htm index.php index.php3;
     root /data/sgcore;
     #sendfile off;
-    autoindex on;
+    autoindex off;
     autoindex_exact_size off;
     autoindex_localtime on;
     charset UTF-8;
@@ -90,7 +94,7 @@ http
       default_type text/plain;
       set $srvname $1;
       set $sceneid $2;
-      content_by_lua_file /data/sgcore/ngx/src/xmlstream.lua.withoutgzip;
+      content_by_lua_file /data/sgcore/ngx/src/lyinterface/ticket-v10.lua;
     }
 
     #ticket v1.1
@@ -98,7 +102,33 @@ http
     {
       default_type text/plain;
       add_header Access-Control-Allow-Origin $http_origin;
-      content_by_lua_file /data/sgcore/ngx/src/xmlapp.lua;
+      content_by_lua_file /data/sgcore/ngx/src/lyinterface/ticket-v11.lua;
+    }
+	
+	#hotel disqueues v1.0 input
+    location ~ '^/task-queues$'
+    {
+        default_type 'text/plain;charset=utf-8';
+        add_header Access-Control-Allow-Origin $http_origin;
+        content_by_lua_file /data/sgcore/ngx/src/disqueues/queues-i.lua;
+    }
+	
+	#hotel disqueues v1.0 output
+    location ~ '^/task-queues/([a-zA-Z]{3,4})/([0-9]+)/$'
+    {
+      default_type text/plain;
+      set $que $1;
+      set $num $2;
+      content_by_lua_file /data/sgcore/ngx/src/disqueues/queues-o.lua;
+    }
+	
+	#uSG-gateway
+    location ~ /sg
+    {
+	  access_log /data/logs/uSG-gateway.log uSG-gateway buffer=32k;
+      default_type text/plain;
+      add_header Access-Control-Allow-Origin $http_origin;
+      content_by_lua_file /data/sgcore/ngx/src/usgateway/core.lua;
     }
 
     location /status {
