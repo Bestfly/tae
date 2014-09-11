@@ -67,11 +67,10 @@ http
   lua_package_path "/data/sgcore/ngx/lib/?.lua;;";
   init_by_lua_file /data/sgcore/ngx/src/usgateway/init.lua;
   
-  log_format usgateway '$http_ServiceName^A$http_uid^A$http_sid^A[$time_local]'
-                            '^A$request^A$status^A$body_bytes_sent^A$connection_requests'
-                            '^A$http_referer^A$http_user_agent'
-                            '^A$request_body';
-  open_log_file_cache max=1000 inactive=15s min_uses=1 valid=1m;
+  log_format uSG-gateway '$remote_addr - $remote_user [$time_local]'
+                            '"$request" $status $body_bytes_sent'
+                            '"$http_referer" "$http_user_agent"';
+  open_log_file_cache max=1000 inactive=20s min_uses=1 valid=1m;
   
   server
   {
@@ -86,6 +85,7 @@ http
     autoindex_localtime on;
     charset UTF-8;
     #limit_conn   crawler  20;
+
     include       mime.types;
 	
 	#ticket v1.0
@@ -125,7 +125,7 @@ http
 	#uSG-gateway
     location ~ /sg
     {
-	  access_log /data/logs/uSG-gateway.log usgateway buffer=32k;
+	  access_log /data/logs/uSG-gateway.log uSG-gateway buffer=32k;
       default_type text/plain;
       add_header Access-Control-Allow-Origin $http_origin;
       content_by_lua_file /data/sgcore/ngx/src/usgateway/core.lua;
@@ -136,4 +136,5 @@ http
     access_log   off;
     }
   }
+
 }
