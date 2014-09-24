@@ -46,8 +46,8 @@ if updatedt == nil or updatedt < ( ngx.now() - 20 ) then
 		ips:set("updatedt", ngx.now());
 	end
 end
-if ips:get(ngx.var.remote_addr) then
-	ngx.log(ngx.WARN, "Banned IP detected and refused access: " .. ngx.var.remote_addr);
+if ips:get(ngx.var.http_clientip) then
+	ngx.log(ngx.WARN, "Banned IP detected and refused access: " .. ngx.var.http_clientip);
 	return ngx.exit(ngx.HTTP_FORBIDDEN);
 end
 -- put it into the connection pool of size 100,
