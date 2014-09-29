@@ -8,8 +8,6 @@
 local JSON = require("cjson");
 local redis = require "resty.redis"
 local http = require "resty.http"
--- local ltn12 = require "ltn12"
-
 -- originality
 local error001 = JSON.encode({ ["resultCode"] = 1, ["description"] = "No response because you has inputted error"});
 local error002 = JSON.encode({ ["resultCode"] = 2, ["description"] = "Get task from Queues is no result"});
@@ -17,7 +15,6 @@ function error003 (mes)
 	local res = JSON.encode({ ["resultCode"] = 3, ["description"] = mes});
 	return res
 end
-
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -33,7 +30,14 @@ if not ok then
 	ngx.say("failed to connect redis: ", err)
 	return
 end
+local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a01")
+if not r then
+    ngx.say("failed to authenticate: ", e)
+    return
+end
 -- end of nosql init.
+-- init the DICT.
+-- local byfs = ngx.shared.biyifei;
 if ngx.var.request_method == "GET" then
 	local task = {};
 	local check = false;
@@ -58,23 +62,13 @@ if ngx.var.request_method == "GET" then
 	else
 		ngx.print(error002)
 	end
-	--[[
-	-- blpop one.
-	local res, err = red:blpop("Queues", 0)
-	if not res then
-		ngx.print(error002)
-	else
-		ngx.print(res[2])
-	end
-	--]]
 else
 	ngx.exit(ngx.HTTP_FORBIDDEN);
 end
---[[	-- put it into the connection pool of size 512,
-	-- with 0 idle timeout
-	local ok, err = red:set_keepalive(0, 512)
-	if not ok then
-		ngx.say("failed to set keepalive redis: ", err)
-		return
-	end
---]]
+-- put it into the connection pool of size 100,
+-- with 10 seconds max idle time
+local ok, err = red:set_keepalive(10000, 100)
+if not ok then
+    ngx.say("failed to set keepalive: ", err)
+    return
+end

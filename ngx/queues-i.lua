@@ -52,12 +52,6 @@ end
 -- end of nosql init.
 -- init the DICT.
 -- local byfs = ngx.shared.biyifei;
--- local port = ngx.shared.airport;
--- local porg = port:get(string.upper(ngx.var.org));
--- local pdst = port:get(string.upper(ngx.var.dst));
--- local city = ngx.shared.citycod;
--- local torg = city:get(string.upper(ngx.var.org));
--- local tdst = city:get(string.upper(ngx.var.dst));
 local verifykey = "19958883-A3B8-4B67-93F3-F73F47B20340";
 if ngx.var.request_method == "GET" then
 	ngx.exit(ngx.HTTP_FORBIDDEN);
@@ -86,35 +80,21 @@ else
 						if idx ~= nil then
 							-- string.sub(qn, idx+1, -1)
 							local rightstr = string.sub(qn, idx+1, -1)
-							local leftstr = string.sub(qn, 1, idx-1)
-							if string.len(rightstr) ~= 5 then
-								ngx.exit(ngx.HTTP_BAD_REQUEST);
-							else
-								if leftstr ~= "dom" and leftstr ~= "room" then
+							qn = "que:" .. string.sub(qn, 1, idx-1)
+							if tonumber(otype) == 0 then
+								local res, err = red:rpush(qn, rightstr .. "/0/" .. qbody);
+								if not res then
 									ngx.exit(ngx.HTTP_BAD_REQUEST);
 								else
-									if leftstr == "room" then
-										qn = "que:room"
-									end
-									if leftstr == "hotel" then
-										qn = "que:hotel"
-									end
-									if tonumber(otype) == 0 then
-										local res, err = red:rpush(qn, rightstr .. "/0/" .. qbody);
-										if not res then
-											ngx.exit(ngx.HTTP_BAD_REQUEST);
-										else
-											ngx.exit(ngx.HTTP_OK);
-										end
-									end
-									if tonumber(otype) == 1 then		
-										local res, err = red:lpush(qn, rightstr .. "/1/" .. qbody);
-										if not res then
-											ngx.exit(ngx.HTTP_BAD_REQUEST);
-										else
-											ngx.exit(ngx.HTTP_OK);
-										end
-									end
+									ngx.exit(ngx.HTTP_OK);
+								end
+							end
+							if tonumber(otype) == 1 then		
+								local res, err = red:lpush(qn, rightstr .. "/1/" .. qbody);
+								if not res then
+									ngx.exit(ngx.HTTP_BAD_REQUEST);
+								else
+									ngx.exit(ngx.HTTP_OK);
 								end
 							end
 						else
@@ -129,4 +109,11 @@ else
 			ngx.exit(ngx.HTTP_NOT_ALLOWED);
 		end				
 	end
+end
+-- put it into the connection pool of size 100,
+-- with 10 seconds max idle time
+local ok, err = red:set_keepalive(10000, 100)
+if not ok then
+    ngx.say("failed to set keepalive: ", err)
+    return
 end
