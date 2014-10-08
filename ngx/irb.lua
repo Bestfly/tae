@@ -200,7 +200,7 @@ else
 							end
 						else
 							if dt >= 10 then
-								-- do failure to Call back RankBus Q+
+								-- Job failure to Call back RankBus Q+
 								local kvid = idx4 .. ngx.md5(uk);
 								local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
 								if tmp ~= 0 then
