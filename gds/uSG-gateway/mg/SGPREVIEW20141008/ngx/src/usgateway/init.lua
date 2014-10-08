@@ -22,3 +22,11 @@ while row do
 	row = cur:fetch (row, "a")
 end
 cur:close();
+sqlcmd = "SELECT `uid`, `sid`, `api_key` FROM `tbl_client_auth`";
+cur = assert (con:execute(sqlcmd))
+row = cur:fetch ({}, "a")
+while row do
+	sg:set(row.uid .. row.sid, row.api_key)
+	row = cur:fetch (row, "a")
+end
+cur:close();

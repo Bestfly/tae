@@ -23,6 +23,7 @@ local error003 = JSON.encode({ ["resultCode"] = 3, ["description"] = "error003#P
 local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#StartDate Not found in your headers"});
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#Get IP from Queues is no result"});
 local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#NGX DICT ERROR"});
+local error007 = JSON.encode({ ["resultCode"] = 7, ["description"] = "error007#UID & SID#No prior registration channel customers"});
 function error009 (code, mes)
 	local res = JSON.encode({ ["resultCode"] = code, ["description"] = mes});
 	return res
@@ -123,8 +124,6 @@ local sg = ngx.shared.sgcore;
 -- Main
 -- api url
 local forwarduri = ""
-local verifykey = "19958883-A3B8-4B67-93F3-F73F47B20340";
-local verifykey1 = "19888395-A3B8-4B67-93F3-B20340F73F47";
 if ngx.var.request_method == "POST" then
 	ngx.req.read_body();
 	local pcontent = ngx.req.get_body_data();
@@ -138,56 +137,61 @@ if ngx.var.request_method == "POST" then
 				ngx.exit(ngx.HTTP_GONE);
 			else
 				if harg["ServiceName"] ~= nil and harg["uid"] ~= nil and harg["sid"] ~= nil then
-					if ngx.md5(harg["Auth-Timestamp"] .. harg["uid"] .. ngx.md5(pcontent .. verifykey) .. harg["sid"] .. harg["ServiceName"]) ~= harg["Auth-Signature"] and ngx.md5(harg["Auth-Timestamp"] .. harg["uid"] .. ngx.md5(pcontent .. verifykey1) .. harg["sid"] .. harg["ServiceName"]) ~= harg["Auth-Signature"] then
-						ngx.exit(ngx.HTTP_UNAUTHORIZED);
-					else
-						-- Forward Controller
-						local srvname = harg["ServiceName"];
-						forwarduri = sg:get(srvname);
-						if forwarduri ~= JSON.null and forwarduri ~= nil then
-						-- if baseurl ~= JSON.null and scenuri ~= JSON.null then
-							local hc = http:new()
-							local ok, code, headers, status, body = hc:request {
-								url = forwarduri,
-								-- url = "http://localhost:4000/citycns",
-								-- proxy = "http://10.123.74.137:808",
-								timeout = 30000,
-								method = "POST", -- POST or GET
-								headers = {
-									-- ["Host"] = "tcopenapi.17usoft.com",
-									-- ["SOAPAction"] = "http://ctrip.com/Request",
-									["uid"] = harg["uid"],
-									["sid"] = harg["sid"],
-									-- ["Data-Format"] = "json",
-									["Data-Format"] = harg["data-format"],
-									["Cache-Control"] = "no-cache",
-									-- ["Accept-Encoding"] = "gzip",
-									["Accept"] = "*/*",
-									["Connection"] = "keep-alive",
-									["Content-Type"] = "application/json; charset=utf-8",
-									["Content-Length"] = string.len(pcontent),
-									["User-Agent"] = "Rhongx by huangqi for uMsg-Gateway v0.5.7"
-								},
-								body = pcontent,
-							}
-							if code == 200 then
-								ngx.print(body);
-							else
-								-- ngx.say("-------" .. code .. "+++++++++")
-								-- if code == nil or code == JSON.null or code == "" then
-								if tonumber(code) ~= nil then
-									ngx.print(error009(code, body))
+					local verifykey = sg:get(harg["uid"] .. harg["sid"]);
+					if verifykey ~= nil then
+						if ngx.md5(harg["Auth-Timestamp"] .. harg["uid"] .. ngx.md5(pcontent .. verifykey) .. harg["sid"] .. harg["ServiceName"]) ~= harg["Auth-Signature"] then
+							ngx.exit(ngx.HTTP_UNAUTHORIZED);
+						else
+							-- Forward Controller
+							local srvname = harg["ServiceName"];
+							forwarduri = sg:get(srvname);
+							if forwarduri ~= JSON.null and forwarduri ~= nil then
+							-- if baseurl ~= JSON.null and scenuri ~= JSON.null then
+								local hc = http:new()
+								local ok, code, headers, status, body = hc:request {
+									url = forwarduri,
+									-- url = "http://localhost:4000/citycns",
+									-- proxy = "http://10.123.74.137:808",
+									timeout = 30000,
+									method = "POST", -- POST or GET
+									headers = {
+										-- ["Host"] = "tcopenapi.17usoft.com",
+										-- ["SOAPAction"] = "http://ctrip.com/Request",
+										["uid"] = harg["uid"],
+										["sid"] = harg["sid"],
+										-- ["Data-Format"] = "json",
+										["Data-Format"] = harg["data-format"],
+										["Cache-Control"] = "no-cache",
+										-- ["Accept-Encoding"] = "gzip",
+										["Accept"] = "*/*",
+										["Connection"] = "keep-alive",
+										["Content-Type"] = "application/json; charset=utf-8",
+										["Content-Length"] = string.len(pcontent),
+										["User-Agent"] = "Rhongx by huangqi for uMsg-Gateway v0.5.7"
+									},
+									body = pcontent,
+								}
+								if code == 200 then
+									ngx.print(body);
 								else
-									ngx.print(error000(code))
+									-- ngx.say("-------" .. code .. "+++++++++")
+									-- if code == nil or code == JSON.null or code == "" then
+									if tonumber(code) ~= nil then
+										ngx.print(error009(code, body))
+									else
+										ngx.print(error000(code))
+									end
+								end
+							else
+								if forwarduri == "" then
+									ngx.print(error006)
+								else
+									ngx.print(error003)
 								end
 							end
-						else
-							if forwarduri == "" then
-								ngx.print(error006)
-							else
-								ngx.print(error003)
-							end
 						end
+					else
+						ngx.print(error007)
 					end
 				else
 					ngx.print(error001)
