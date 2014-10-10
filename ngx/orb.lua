@@ -34,7 +34,7 @@ end
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
 red:set_timeout(1000) -- 1 sec
 -- nosql connect
-local ok, err = red:connect("127.0.0.1", 6399)
+local ok, err = red:connect("10.161.149.225", 6389)
 if not ok then
 	ngx.say("failed to connect redis: ", err)
 	return
@@ -71,47 +71,74 @@ if ngx.var.request_method == "GET" then
 				local task = {};
 				local check = false;
 				local resnum = 0;
-				for n = 1, ngx.var.num do
-					local res, err = red:lpop(ngx.var.que .. ":list")
-					if type(res) ~= "string" then
-						task[n] = JSON.null
-						break;
-					else
-						-- local tkey = res[2];
-						local tkey = res;
-						res, err = memc:get(tkey)
-						if not res then
-							ngx.say("failed to get originality data from kvdb: ", tkey, err)
-							return
+				if tonumber(ngx.var.num) ~= 0 then
+					for n = 1, ngx.var.num do
+						local res, err = red:lpop(ngx.var.que .. ":list")
+						if type(res) ~= "string" then
+							task[n] = JSON.null
+							break;
 						else
-							if string.find(res, "el%a%a%a\/[0,1]\/") ~= nil then
-								task[n] = res
-							else
-								task[n] = JSON.null
-								-- ngx.say("Bad data got from kvdb: ", tkey, err)
-								-- return
-							end
-							check = true;
-							resnum = resnum + 1;
-							-- Cancel delete the vd data for webservice developing via redis indexsystem
-							--[[
-							res, err = memc:delete(tkey)
+							-- local tkey = res[2];
+							local tkey = res;
+							res, err = memc:get(tkey)
 							if not res then
-								ngx.say("failed to delete originality data of dip: ", tkey, err)
+								ngx.say("failed to get originality data from kvdb: ", tkey, err)
 								return
+							else
+								if string.find(res, "[0,1]\/el%a%a%a\/") ~= nil then
+									task[n] = res
+								else
+									task[n] = JSON.null
+									-- ngx.say("Bad data got from kvdb: ", tkey, err)
+									-- return
+								end
+								check = true;
+								resnum = resnum + 1;
+								-- Cancel delete the vd data for webservice developing via redis indexsystem
+								--[[
+								res, err = memc:delete(tkey)
+								if not res then
+									ngx.say("failed to delete originality data of dip: ", tkey, err)
+									return
+								end
+								--]]
 							end
-							--]]
 						end
 					end
-				end
-				if check == true then
-					local result = {};
-					result["resultCode"] = 0;
-					result["tasknumber"] = resnum;
-					result["taskQueues"] = task;
-					ngx.print(JSON.encode(result))
+					if check == true then
+						local result = {};
+						result["resultCode"] = 0;
+						result["tasknumber"] = resnum;
+						result["taskQueues"] = task;
+						ngx.print(JSON.encode(result))
+					else
+						ngx.print(error004)
+					end
 				else
-					ngx.print(error004)
+					local r, e = red:zrange("elg:vals:" .. ngx.var.que, 0, -1)
+					if not r then
+						ngx.say("failed to get kvid from Redis: ", e)
+						return
+					else
+						if type(r) == "table" then
+							for n = 1, table.getn(r) do
+								task[n] = memc:get(ngx.var.que .. r[n])
+								if task[n] ~= nil then
+									check = true;
+									resnum = resnum + 1;
+								end
+							end
+						end
+					end
+					if check == true then
+						local result = {};
+						result["resultCode"] = 0;
+						result["tasknumber"] = resnum;
+						result["taskQueues"] = task;
+						ngx.print(JSON.encode(result))
+					else
+						ngx.print(error001)
+					end
 				end
 			end
 		end

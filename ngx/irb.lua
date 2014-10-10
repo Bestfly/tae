@@ -25,6 +25,7 @@ function error003 (mes)
 	return res
 end
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#VB and SC updated within your mission being done"});
+local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#Call back RankBus Q+ with SC"});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -209,12 +210,13 @@ else
 										-- NOT Q type data which been posted into RankBus first
 										-- dt 12
 										local vb = pcontent.vb
-										local sortkey = ngx.md5(uk) .. idx3;
-										local tkey = idx4 .. "vals";
+										local sortkey = ngx.md5(uk);
+										local tkey = "elg:vals:" .. idx3;
 										-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 										vb = dt .. "/" .. idx4 .. "/" .. vb;
 										-- vb = idx4 .. "/" .. dt .. "/" .. vb;
-										local kvid = idx3 .. idx4 .. ngx.md5(uk);
+										local kvid = idx3 .. sortkey;
+										
 										local lit = string.sub(sc, 15, -1);
 										if lit ~= nil and lit ~= "" then
 											sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
@@ -259,6 +261,8 @@ else
 												ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 											end
 										end
+									else
+										ngx.print(error006)
 									end
 								end
 							else
@@ -321,7 +325,7 @@ else
 							ngx.exit(ngx.HTTP_BAD_REQUEST);
 						end
 					else
-						ngx.print(error001);
+						ngx.print(error001)
 					end
 				end
 			end
