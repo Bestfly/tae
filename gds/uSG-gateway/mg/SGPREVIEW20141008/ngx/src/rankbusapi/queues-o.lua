@@ -1,9 +1,9 @@
--- buyhome <huangqi@rhomobi.com> 20130705 (v0.5.1)
+-- Jijilu <huangqi@rhomobi.com> 20141020 (v0.5.2)
 -- License: same to the Lua one
 -- TODO: copy the LICENSE file
 -------------------------------------------------------------------------------
 -- begin of the idea : http://rhomobi.com/topics/
--- price of extension for elong website : http://flight.elong.com/beijing-shanghai/cn_day19.html
+-- Queues service of RankBus for TAE service
 -- load library
 local JSON = require("cjson");
 local redis = require "resty.redis"
@@ -23,16 +23,16 @@ if not red then
 end
 -- lua socket timeout
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
-red:set_timeout(1000) -- 1 sec
+red:set_timeout(3000) -- 3 sec
 -- nosql connect
-local ok, err = red:connect("127.0.0.1", 6399)
+local ok, err = red:connect("10.171.99.210", 16390)
 if not ok then
-	ngx.say("failed to connect redis: ", err)
+	ngx.print(error003("failed to connect redis: ", err))
 	return
 end
-local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a01")
+local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
 if not r then
-    ngx.say("failed to authenticate: ", e)
+    ngx.print(error003("failed to authenticate: ", e))
     return
 end
 -- end of nosql init.
@@ -95,7 +95,7 @@ else
 end
 -- put it into the connection pool of size 100,
 -- with 10 seconds max idle time
-local ok, err = red:set_keepalive(10000, 300)
+local ok, err = red:set_keepalive(0, 10000)
 if not ok then
     ngx.say("failed to set keepalive: ", err)
     return
