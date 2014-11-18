@@ -27,7 +27,8 @@ end
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
-	ngx.say("failed to instantiate redis: ", err)
+	-- ngx.say("failed to instantiate redis: ", err)
+	ngx.log(ngx.ERR, error003("failed to instantiate redis: ", err))
 	return
 end
 -- lua socket timeout
@@ -36,23 +37,34 @@ red:set_timeout(3000) -- 3 sec
 -- nosql connect
 local ok, err = red:connect("10.171.99.210", 16390)
 if not ok then
-	ngx.print(error003("failed to connect redis: ", err))
+	-- ngx.print(error003("failed to connect redis: ", err))
+	ngx.log(ngx.ERR, error003("failed to connect redis: ", err))
 	return
 end
 local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
 if not r then
     ngx.print(error003("failed to authenticate: ", e))
     return
+else
+	-- put it into the connection pool of size 100,
+	-- with 10 seconds max idle time
+	local ok, err = red:set_keepalive(10000, 500)
+	if not ok then
+		ngx.log(ngx.ERR, "cannot set Redis keepalive: ", err)
+	    -- return
+	end
 end
 local memc, err = memcached:new()
 if not memc then
-    ngx.say("failed to instantiate memc: ", err)
+    -- ngx.say("failed to instantiate memc: ", err)
+	ngx.log(ngx.ERR, error003("failed to instantiate memc: ", err))
     return
 end
 memc:set_timeout(3000) -- 3 sec
 local ok, err = memc:connect("10.171.99.210", 11978)
 if not ok then
-    ngx.print(error003("failed to connect: ", err))
+    -- ngx.print(error003("failed to connect: ", err))
+	ngx.log(ngx.ERR, error003("failed to connect: ", err))
     return
 end
 -- end of nosql init.
@@ -78,6 +90,7 @@ if ngx.var.request_method == "GET" then
 							task[n] = JSON.null
 							break;
 						else
+							red:set_keepalive(10000, 500)
 							-- local tkey = res[2];
 							local tkey = res;
 							res, err = memc:get(tkey)
@@ -85,6 +98,7 @@ if ngx.var.request_method == "GET" then
 								ngx.print(error003("failed to get originality data from kvdb: ", tkey, err))
 								return
 							else
+								memc:set_keepalive(10000, 500)
 								if string.find(res, "[0,1]/el%a%a%a/") ~= nil then
 									task[n] = res
 								else
@@ -120,6 +134,7 @@ if ngx.var.request_method == "GET" then
 						ngx.print(error003("failed to get kvid from Redis: ", e))
 						return
 					else
+						red:set_keepalive(10000, 500)
 						if type(r) == "table" then
 							for n = 1, table.getn(r) do
 								task[n] = memc:get(ngx.var.que .. r[n])
@@ -147,18 +162,4 @@ if ngx.var.request_method == "GET" then
 	end
 else
 	ngx.exit(ngx.HTTP_FORBIDDEN);
-end
--- put it into the connection pool of size 100,
--- with 10 seconds max idle timeout
-local ok, err = memc:set_keepalive(0, 10000)
-if not ok then
-    ngx.say("cannot set keepalive: ", err)
-    return
-end
--- put it into the connection pool of size 100,
--- with 10 seconds max idle time
-local ok, err = red:set_keepalive(0, 10000)
-if not ok then
-    ngx.say("failed to set keepalive: ", err)
-    return
 end
