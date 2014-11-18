@@ -18,8 +18,8 @@ end
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
-	ngx.log(ngx.ERR, error003("failed to instantiate redis: ", err))
 	-- ngx.say("failed to instantiate redis: ", err)
+	ngx.log(ngx.ERR, error003("failed to instantiate redis: ", err))
 	return
 end
 -- lua socket timeout
@@ -28,8 +28,7 @@ red:set_timeout(3000) -- 3 sec
 -- nosql connect
 local ok, err = red:connect("10.171.99.210", 16390)
 if not ok then
-	ngx.log(ngx.ERR, error003("failed to connect redis: ", err))
-	-- ngx.print(error003("failed to connect redis: ", err))
+	ngx.print(error003("failed to connect redis: ", err))
 	return
 end
 local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
@@ -64,7 +63,6 @@ if ngx.var.request_method == "GET" then
 						task[n] = res
 						check = true;
 						resnum = resnum + 1;
-						-- red:set_keepalive(10000, 500)
 					end
 					--[[
 					-- Do NOT support set_keepalive

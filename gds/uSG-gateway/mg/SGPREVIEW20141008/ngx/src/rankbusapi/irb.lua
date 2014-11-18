@@ -30,8 +30,7 @@ local error007 = JSON.encode({ ["resultCode"] = 7, ["description"] = "error007#R
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
-	ngx.log(ngx.ERR, error003("failed to instantiate redis: ", err))
-	-- ngx.say("failed to instantiate redis: ", err)
+	ngx.say("failed to instantiate redis: ", err)
 	return
 end
 -- lua socket timeout
@@ -40,7 +39,7 @@ red:set_timeout(3000) -- 3 sec
 -- nosql connect
 local ok, err = red:connect("10.171.99.210", 16390)
 if not ok then
-	ngx.log(ngx.ERR, error003("failed to connect redis: ", err))
+	ngx.print(error003("failed to connect redis: ", err))
 	return
 end
 local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
@@ -50,15 +49,13 @@ if not r then
 end
 local memc, err = memcached:new()
 if not memc then
-	ngx.log(ngx.ERR, error003("failed to instantiate memc: ", err))
-    -- ngx.say("failed to instantiate memc: ", err)
+    ngx.say("failed to instantiate memc: ", err)
     return
 end
 memc:set_timeout(3000) -- 3 sec
 local ok, err = memc:connect("10.171.99.210", 11978)
 if not ok then
-	ngx.log(ngx.ERR, error003("failed to connect: ", err))
-    -- ngx.print(error003("failed to connect: ", err))
+    ngx.print(error003("failed to connect: ", err))
     return
 end
 -- end of nosql init.
@@ -127,7 +124,6 @@ else
 										sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
 									end
 									local tscres, err = red:zscore(tkey, sortkey)
-									-- red:set_keepalive(10000, 500)
 									tscres = tonumber(tscres)--double
 									if tscres ~= nil then
 										if sc > tscres then
@@ -138,21 +134,18 @@ else
 												return
 											end
 											local tvb = memc:get(kvid)
-											-- memc:set_keepalive(10000, 500)
 											local tmd = ""
 											if tvb ~= nil then
 												tmd = ngx.md5(tvb)
 											end
 											if ngx.md5(vb) ~= tmd then
 												local ok = memc:replace(kvid, vb)
-												-- memc:set_keepalive(10000, 500)
 												if not ok then
 													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													return
 												else
 													local btmp = false;
 													local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
-													-- red:set_keepalive(10000, 500)
 													if dt ~= 1 then
 														local res, err = red:rpush(idx3 .. ":list", kvid)
 														if not res or not tmp then
@@ -160,7 +153,6 @@ else
 															return
 														else
 															btmp = true
-															-- red:set_keepalive(10000, 500)
 														end
 													else
 														local res, err = red:lpush(idx3 .. ":list", kvid)
@@ -169,7 +161,6 @@ else
 															return
 														else
 															btmp = true
-															-- red:set_keepalive(10000, 500)
 														end
 													end
 													if btmp ~= true then
@@ -198,7 +189,6 @@ else
 											ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 											return
 										else
-											-- memc:set_keepalive(10000, 500)
 											local btmp = false;
 											if dt ~= 1 then
 												local res, err = red:rpush(idx3 .. ":list", kvid)
@@ -207,7 +197,6 @@ else
 													return
 												else
 													btmp = true
-													-- red:set_keepalive(10000, 500)
 												end
 											else
 												local res, err = red:lpush(idx3 .. ":list", kvid)
@@ -216,7 +205,6 @@ else
 													return
 												else
 													btmp = true
-													-- red:set_keepalive(10000, 500)
 												end
 											end
 											if btmp ~= true then
@@ -249,7 +237,6 @@ else
 											sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
 										end
 										local tscres, err = red:zscore(tkey, sortkey)
-										-- red:set_keepalive(10000, 500)
 										tscres = tonumber(tscres)--double
 										if tscres ~= nil then
 											if sc > tscres then
@@ -264,7 +251,6 @@ else
 													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													return
 												else
-													-- memc:set_keepalive(10000, 500)
 													ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												end
 											else
@@ -282,7 +268,6 @@ else
 												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												return
 											else
-												-- memc:set_keepalive(10000, 500)
 												ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 											end
 										end
@@ -312,14 +297,12 @@ else
 											ngx.print(error003("failed to get originality data from kvdb: " .. kvid .. "->>" .. rerr))
 											return
 										else
-											-- memc:set_keepalive(10000, 500)
 											local vb = dt .. string.sub(rdata, 3, -1)
 											rdata, rerr = memc:replace(kvid, vb)
 											if not rdata then
 												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												return
 											else
-												-- memc:set_keepalive(10000, 500)
 												-- local btmp = false;
 												if tonumber(string.sub(dt, 0, -1)) ~= 1 then
 													local res, err = red:rpush(idx3 .. ":list", kvid)
@@ -327,7 +310,6 @@ else
 														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
-														-- red:set_keepalive(10000, 500)
 														-- btmp = true
 														ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
 													end
@@ -337,7 +319,6 @@ else
 														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
-														-- red:set_keepalive(10000, 500)
 														-- btmp = true
 														ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
 													end
@@ -366,15 +347,15 @@ else
 end
 -- put it into the connection pool of size 100,
 -- with 10 seconds max idle timeout
-local ok, err = memc:set_keepalive(10000, 500)
+local ok, err = memc:set_keepalive(10000, 1000)
 if not ok then
-    ngx.log(ngx.ERR, "cannot set Memcached keepalive: ", err)
+    ngx.say("cannot set keepalive: ", err)
     return
 end
 -- put it into the connection pool of size 100,
 -- with 10 seconds max idle time
-local ok, err = red:set_keepalive(10000, 500)
+local ok, err = red:set_keepalive(10000, 1000)
 if not ok then
-	ngx.log(ngx.ERR, "cannot set Redis keepalive: ", err)
+    ngx.say("failed to set keepalive: ", err)
     return
 end
