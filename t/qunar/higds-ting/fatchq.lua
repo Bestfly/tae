@@ -152,7 +152,7 @@ function fatchpri (host, url, uri)
 		url = sinaurl .. md5uri,
 		-- proxy = exProxy,
 		-- proxy = "http://10.123.74.137:808",
-		-- proxy = "http://127.0.0.1:8088",
+		proxy = "http://127.0.0.1:8088",
 		-- proxy = "http://" .. tostring(arg[2]),
 		timeout = 10000,
 		method = "GET", -- POST or GET
@@ -312,7 +312,9 @@ while true do
 								t["isNoData"] = 1
 							end
 							t["isFailed"] = 0
-							table.insert(room, t);
+							if t["compareResult"] ~= 1 then
+								table.insert(room, t);
+							end
 							print("++++++房型数据比对完成将跳出循环++++++")
 							break;
 						else
