@@ -13,7 +13,7 @@ return obj;
 local socket = require 'socket'
 local http = require 'socket.http'
 -- local dns = require 'socket.dns'
-
+local JSON = require 'cjson'
 print(socket._VERSION)
 for k,v in pairs(socket._M) do
 	print(k,v)
@@ -73,6 +73,11 @@ if ok then
 else
     print ("Error")
 end
+
+local t = {}
+local m = 
+table.insert(t,m)
+print(JSON.encode(t))
 -- print(c:getinfo(curl.INFO_EFFECTIVE_URL))
 -- print(c:getinfo(curl.INFO_TOTAL_TIME))
 -- print(c:getinfo(curl.INFO_RESPONSE_CODE))

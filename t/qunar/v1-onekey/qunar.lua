@@ -58,7 +58,7 @@ local baseurl = "http://api.mangocity.com/"
 -- local md5uri = "taei?intl/ctrip/20131130.20131230/bjslon";
 -- &intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&
 -- local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
-local md5uri = "HOI/hotelService?cl=qunarnew&q=bd&hotelId=30073268&fromDate=2014-10-15&toDate=2014-10-17"
+local md5uri = "HOI/hotelService?cl=qunarnew&q=bd&hotelId=30073268&fromDate=2014-12-15&toDate=2014-12-17"
 -- local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRg";
 -- local appid = "142ffb5bfa1-cn-jijilu-dg-c01";
 -- local timestamp = os.time();
@@ -142,9 +142,9 @@ if code == 200 then
 	-- print("+++++----++++++")
 	-- print(string.format("cl Elapsed time: %.5f", os.clock() - timestamp))
 	-- print("--------------")
-	print("200",string.format("ms elapsed time: %.3f", (socket.gettime() - t)*1000))
+	print(code,string.format("ms elapsed time: %.3f", (socket.gettime() - t)*1000))
 else
-	print("500",string.format("ms elapsed time: %.3f", (socket.gettime() - t)*1000))
+	print(code,string.format("ms elapsed time: %.3f", (socket.gettime() - t)*1000))
 end
 print("++++++++++++++++++++++++++++++++\n")
 --[[
