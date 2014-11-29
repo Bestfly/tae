@@ -12,6 +12,7 @@ return obj;
 
 local socket = require 'socket'
 local http = require 'socket.http'
+local md5 = require 'md5'
 -- local dns = require 'socket.dns'
 local JSON = require 'cjson'
 print(socket._VERSION)
@@ -73,11 +74,51 @@ if ok then
 else
     print ("Error")
 end
-
-local t = {}
-local m = 
-table.insert(t,m)
-print(JSON.encode(t))
 -- print(c:getinfo(curl.INFO_EFFECTIVE_URL))
 -- print(c:getinfo(curl.INFO_TOTAL_TIME))
 -- print(c:getinfo(curl.INFO_RESPONSE_CODE))
+local timestamp = os.time() + 1200;
+local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRb";
+local request = '[{"dt":"00","qn":"elhtl:dbd","uk":22222,"sc":2348234324, "vb":"111"},{"dt":"12","vb":1,"qn":"elhtl:dbd","uk":22221,"sc":2348234325}]'
+-- init response table
+local respbody = {};
+-- local hc = http:new()
+local body, code, headers, status = http.request {
+-- local ok, code, headers, status, body = http.request {
+	-- url = "http://cloudavh.com/data-gw/index.php",
+	url = "http://api.cloudavh.com/rbapi/2",
+	-- proxy = "http://10.123.74.137:808",
+	-- proxy = "http://" .. tostring(arg[2]),
+	timeout = 30000,
+	method = "POST", -- POST or GET
+	-- add post content-type and cookie
+	-- headers = { ["Content-Type"] = "application/x-www-form-urlencoded", ["Content-Length"] = string.len(form_data) },
+	-- headers = { ["Host"] = "flight.itour.cn", ["X-AjaxPro-Method"] = "GetFlight", ["Cache-Control"] = "no-cache", ["Accept-Encoding"] = "gzip,deflate,sdch", ["Accept"] = "*/*", ["Origin"] = "chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm", ["Connection"] = "keep-alive", ["Content-Type"] = "application/json", ["Content-Length"] = string.len(JSON.encode(request)), ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36" },
+	headers = {
+		-- ["Host"] = "openapi.ctrip.com",
+		-- ["SOAPAction"] = "http://ctrip.com/Request",
+		["Auth-Timestamp"] = timestamp,
+		["Auth-Signature"] = md5.sumhexa(sinakey .. timestamp),
+		["Cache-Control"] = "no-cache",
+		-- ["Accept-Encoding"] = "gzip",
+		["Accept"] = "*/*",
+		["Connection"] = "keep-alive",
+		["Content-Type"] = "application/json; charset=utf-8",
+		["Content-Length"] = string.len(request),
+		["User-Agent"] = "Hotel API AgentService by Jijilu version 0.5.1"
+	},
+	source = ltn12.source.string(request),
+	sink = ltn12.sink.table(respbody)
+}
+if code == 200 then
+	local resxml = "";
+	local reslen = table.getn(respbody)
+	-- print(reslen)
+	for i = 1, reslen do
+		-- print(respbody[i])
+		resxml = resxml .. respbody[i]
+	end
+	print(resxml)
+else
+	print(code)
+end
