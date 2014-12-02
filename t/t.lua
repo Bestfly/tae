@@ -80,13 +80,14 @@ end
 local timestamp = os.time() + 1200;
 local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRb";
 local request = '[{"dt":"00","qn":"elhtl:dbd","uk":22222,"sc":2348234324, "vb":"111"},{"dt":"12","vb":1,"qn":"elhtl:dbd","uk":22221,"sc":2348234325}]'
+-- local request = '{"type":"0","queues":"hotel:roomStatic","qbody":"{"TaskName":"hotel.static.hotellist","LifeCycle":0,"RequestTime":"2014-12-01 07:24:14","LimitFrequence":5}"}'
 -- init response table
 local respbody = {};
 -- local hc = http:new()
 local body, code, headers, status = http.request {
 -- local ok, code, headers, status, body = http.request {
 	-- url = "http://cloudavh.com/data-gw/index.php",
-	url = "http://api.cloudavh.com/rbapi/2",
+	url = "http://api.cloudavh.com/task-rbs",
 	-- proxy = "http://10.123.74.137:808",
 	-- proxy = "http://" .. tostring(arg[2]),
 	timeout = 30000,

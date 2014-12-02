@@ -347,7 +347,7 @@ while true do
 				else
 					hotel["statusResult"] = 1
 				end
-				if x + y + z >0 then
+				if x + y + z > 0 then
 					hotel["compareResult"] = 0
 				else
 					hotel["compareResult"] = 1
