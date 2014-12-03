@@ -362,7 +362,7 @@ while true do
 				print(r1)
 			end
 			hotel["rooms"] = room
-			hotel["isFailed"] = 0		
+			hotel["isFailed"] = 0
 			hotel["priceDataUrl"] = ""
 			hotel["orderDataUrl"] = ""
 		else
