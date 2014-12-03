@@ -305,6 +305,9 @@ while true do
 								t["isNoData"] = 0
 							else
 								print("------------Rooms NOT found------>>>/" .. i)
+								x = x + 1
+								y = y + 1
+								z = z + 1
 								t["statusResult"] = -1
 								t["priceResult"] = -1
 								t["nameResult"] = -1
