@@ -339,6 +339,7 @@ while true do
 				-- print(JSON.encode(room))
 				hotel["isNoData"] = 0
 				hotel["roomsCount"] = ltrb
+				
 				if x > 0 then
 					hotel["roomResult"] = 0
 				else
