@@ -218,6 +218,7 @@ while true do
 		-- failed when ~= 200
 		if c1 == 200 then
 			-- print(r1)
+			local w = 0
 			print("------------开始解析房型数据--------")
 			local idx1 = string.find(r1, "<rooms>");
 			local idx2 = string.find(r1, "</rooms>");
@@ -244,8 +245,9 @@ while true do
 				-- trb[i].status
 				-- print(JSON.encode(trb))
 				print("------------房型数据解析完开始调用试预定--------")
-				for i = 1, table.getn(trb) do
-					print("++++ Total rooms :" .. table.getn(trb) .. "/" .. i .. " --->>")
+				local ltrb = table.getn(trb)
+				for i = 1, ltrb do
+					print("++++ Total rooms :" .. ltrb .. "/" .. i .. " --->>")
 					local level = 1
 					while level do
 						local c1, r1 = fatchpri(th, mission.baseUrl, mission.urlRight .. "&roomId=" .. trb[i].id)
@@ -321,9 +323,10 @@ while true do
 							print("++++++房型数据比对完成将跳出循环++++++")
 							break;
 						else
-							print("------------GET HotelPrice Fail----->>>" .. level .. "/" .. i)
+							print("------------GET roomPrice Fail----->>>" .. level .. "/" .. i)
 							if level > 2 then
 								-- fails > 3 Set isFailed
+								w = w + 1 -- 3 all isFailed
 								t["isFailed"] = 1
 								table.insert(room, t);
 								break;
@@ -335,6 +338,7 @@ while true do
 				end
 				-- print(JSON.encode(room))
 				hotel["isNoData"] = 0
+				hotel["roomsCount"] = ltrb
 				if x > 0 then
 					hotel["roomResult"] = 0
 				else
@@ -358,16 +362,24 @@ while true do
 			else
 				print("------------Rooms NOT found-----------")
 				hotel["isNoData"] = 1
-				hotel["statusResult"] = -1
-				hotel["roomResult"] = -1
-				hotel["priceResult"] = -1
-				hotel["compareResult"] = -1
+				hotel["statusResult"] = 0
+				hotel["roomResult"] = 0
+				hotel["priceResult"] = 0
+				hotel["compareResult"] = 0
 				print(r1)
 			end
 			hotel["rooms"] = room
-			hotel["isFailed"] = 0
 			hotel["priceDataUrl"] = ""
 			hotel["orderDataUrl"] = ""
+			if w > 0 then
+				hotel["isFailed"] = 1
+				hotel["statusResult"] = 0
+				hotel["roomResult"] = 0
+				hotel["priceResult"] = 0
+				hotel["compareResult"] = 0
+			else
+				hotel["isFailed"] = 0
+			end
 		else
 			print("------------GET HotelPrice Fail-----------")
 			hotel["isFailed"] = 1
