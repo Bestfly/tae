@@ -315,6 +315,7 @@ while true do
 								t["nameResult"] = -1
 								t["compareResult"] = -1
 								t["isNoData"] = 1
+								t["inconsistentData"] = {}
 							end
 							t["isFailed"] = 0
 							if t["compareResult"] ~= 1 then
@@ -328,6 +329,12 @@ while true do
 								-- fails > 3 Set isFailed
 								w = w + 1 -- 3 all isFailed
 								t["isFailed"] = 1
+								t["isNoData"] = 1
+								t["statusResult"] = -1
+								t["priceResult"] = -1
+								t["nameResult"] = -1
+								t["compareResult"] = -1
+								t["inconsistentData"] = {}
 								table.insert(room, t);
 								break;
 							end
