@@ -407,9 +407,7 @@ while true do
 		-- print(request)
 		-- init response table
 		local respbody = {};
-		-- local hc = http:new()
 		local body, code, headers, status = http.request {
-		-- local ok, code, headers, status, body = http.request {
 			-- url = "http://cloudavh.com/data-gw/index.php",
 			url = "http://112.124.58.108:12580/task",
 			-- proxy = "http://10.123.74.137:808",
@@ -442,6 +440,8 @@ while true do
 				resxml = resxml .. respbody[i]
 			end
 			print(resxml)
+		else
+			print(code,status,request)
 		end
 	else
 		print(codenum, JSON.encode(resbody))
