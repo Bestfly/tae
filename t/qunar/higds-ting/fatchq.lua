@@ -248,8 +248,10 @@ while true do
 				local ltrb = table.getn(trb)
 				for i = 1, ltrb do
 					print("++++ Total rooms :" .. ltrb .. "/" .. i .. " --->>")
+					-- print(trb[i].status)
 					local level = 1
-					while level do
+					while tonumber(trb[i].status) ~= 1 do
+					-- while level do
 						local c1, r1 = fatchpri(th, mission.baseUrl, mission.urlRight .. "&roomId=" .. trb[i].id)
 						-- print(c1,r1)
 						local t = {};

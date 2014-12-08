@@ -123,3 +123,6 @@ if code == 200 then
 else
 	print(code)
 end
+
+local date = string.gsub("2014-12-12", "-", "")
+print(date)

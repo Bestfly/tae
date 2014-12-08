@@ -9,6 +9,27 @@ local JSON = require 'cjson'
 package.path = "/data/sgcore/ngx/lib/?.lua;";
 local deflate = require 'compress.deflatelua'
 local http = require "resty.http"
+local redis = require "resty.redis"
+-- ready to connect to master redis.
+local red, err = redis:new()
+if not red then
+	ngx.say("failed to instantiate redis: ", err)
+	return
+end
+-- lua socket timeout
+-- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
+red:set_timeout(3000) -- 3 sec
+-- nosql connect
+local ok, err = red:connect("10.171.99.210", 16390)
+if not ok then
+	ngx.print(error003("failed to connect redis: ", err))
+	return
+end
+local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
+if not r then
+    ngx.print(error003("failed to authenticate: ", e))
+    return
+end
 -- originality
 function error000 (mes)
 	local res = JSON.encode({ ["resultCode"] = 0, ["description"] = mes});
@@ -146,40 +167,56 @@ if ngx.var.request_method == "POST" then
 							local srvname = harg["ServiceName"];
 							forwarduri = sg:get(srvname);
 							if forwarduri ~= JSON.null and forwarduri ~= nil then
-							-- if baseurl ~= JSON.null and scenuri ~= JSON.null then
-								local hc = http:new()
-								local ok, code, headers, status, body = hc:request {
-									url = forwarduri,
-									-- url = "http://localhost:4000/citycns",
-									-- proxy = "http://10.123.74.137:808",
-									timeout = 30000,
-									method = "POST", -- POST or GET
-									headers = {
-										-- ["Host"] = "tcopenapi.17usoft.com",
-										-- ["SOAPAction"] = "http://ctrip.com/Request",
-										["uid"] = harg["uid"],
-										["sid"] = harg["sid"],
-										-- ["Data-Format"] = "json",
-										["Data-Format"] = harg["data-format"],
-										["Cache-Control"] = "no-cache",
-										-- ["Accept-Encoding"] = "gzip",
-										["Accept"] = "*/*",
-										["Connection"] = "keep-alive",
-										["Content-Type"] = "application/json; charset=utf-8",
-										["Content-Length"] = string.len(pcontent),
-										["User-Agent"] = "Rhongx by huangqi for uMsg-Gateway v0.5.7"
-									},
-									body = pcontent,
-								}
-								if code == 200 then
-									ngx.print(body);
+								local bollsrv = false
+								if srvname == "hotel.list" then
+									pcontent = JSON.decode(pcontent)
+									pr = pcontent.Request
+									CheckInDate = string.gsub(pr.CheckInDate, "-", "")
+									CheckOutDate = string.gsub(pr.CheckOutDate, "-", "")
+									local tb, er = red:hget(pr.CityId .. ":" .. CheckInDate, CheckOutDate .. pr.PageIndex)
+									if not tb then
+										bollsrv = true
+									end
 								else
-									-- ngx.say("-------" .. code .. "+++++++++")
-									-- if code == nil or code == JSON.null or code == "" then
-									if tonumber(code) ~= nil then
-										ngx.print(error009(code, body))
+									bollsrv = true
+								end
+								if bollsrv ~= true then
+									ngx.print(tb)
+								else
+									local hc = http:new()
+									local ok, code, headers, status, body = hc:request {
+										url = forwarduri,
+										-- url = "http://localhost:4000/citycns",
+										-- proxy = "http://10.123.74.137:808",
+										timeout = 30000,
+										method = "POST", -- POST or GET
+										headers = {
+											-- ["Host"] = "tcopenapi.17usoft.com",
+											-- ["SOAPAction"] = "http://ctrip.com/Request",
+											["uid"] = harg["uid"],
+											["sid"] = harg["sid"],
+											-- ["Data-Format"] = "json",
+											["Data-Format"] = harg["data-format"],
+											["Cache-Control"] = "no-cache",
+											-- ["Accept-Encoding"] = "gzip",
+											["Accept"] = "*/*",
+											["Connection"] = "keep-alive",
+											["Content-Type"] = "application/json; charset=utf-8",
+											["Content-Length"] = string.len(pcontent),
+											["User-Agent"] = "Rhongx by huangqi for uMsg-Gateway v0.5.7"
+										},
+										body = pcontent,
+									}
+									if code == 200 then
+										ngx.print(body);
 									else
-										ngx.print(error000(code))
+										-- ngx.say("-------" .. code .. "+++++++++")
+										-- if code == nil or code == JSON.null or code == "" then
+										if tonumber(code) ~= nil then
+											ngx.print(error009(code, body))
+										else
+											ngx.print(error000(code))
+										end
 									end
 								end
 							else
@@ -203,4 +240,11 @@ if ngx.var.request_method == "POST" then
 	end
 else
 	ngx.exit(ngx.HTTP_FORBIDDEN);
+end
+-- put it into the connection pool of size 100,
+-- with 10 seconds max idle time
+local ok, err = red:set_keepalive(10000, 1000)
+if not ok then
+    ngx.say("failed to set keepalive: ", err)
+    return
 end
