@@ -501,14 +501,6 @@ while true do
 					sink = ltn12.sink.table(respup)
 				}
 				if code == 200 then
-					--[[
-					local upyun = "";
-					local len = table.getn(respup)
-					for i = 1, len do
-						upyun = upyun .. respup[i]
-					end
-					print(upyun)
-					--]]
 					print("++++传云完毕--->>报价++++")
 					hotel["priceDataUrl"] = "http://cache.bestfly.cn" .. "/hotel/mango/" .. mission.jobId .. "/" .. mission.hotelId .. "/" .. redisidx .. "-prices.xml";
 				else
@@ -521,6 +513,13 @@ while true do
 					end
 					print(status)
 					print(body)
+					print("-----------------------")
+					local upyun = "";
+					local len = table.getn(respup)
+					for i = 1, len do
+						upyun = upyun .. respup[i]
+					end
+					print(upyun)
 				end
 			else
 				print("++无需传云--->>报价为空++")
@@ -579,6 +578,13 @@ while true do
 					end
 					print(status)
 					print(body)
+					print("-----------------------")
+					local upyun = "";
+					local len = table.getn(respup)
+					for i = 1, len do
+						upyun = upyun .. respup[i]
+					end
+					print(upyun)
 				end
 			else
 				print("++无需传云--->>试预订空++")
