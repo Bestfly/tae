@@ -28,6 +28,7 @@ local base64 = require 'base64'
 local crypto = require 'crypto'
 package.path = "/usr/local/webserver/lua/lib/?.lua;";
 local LuaXML = require 'LuaXml'
+-- LuaXML.registerCode(,utf8)
 local appid = "142ffb5bfa1-cn-jijilu-dg-c01";
 local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRb";
 function sleep(n)
@@ -468,10 +469,10 @@ while true do
 				local respup = {};
 				local timestamp = os.date("%a, %d %b %Y %X GMT", os.time() - 8 * 3600)
 				local requri = "/biyifei/hotel/mango/" .. mission.jobId .. "/" .. mission.hotelId .. "/" .. redisidx .. "-prices.xml";
-				local sign = md5.sumhexa("PUT&" .. requri .. "&" .. timestamp .. "&" .. cl .. "&" .. md5.sumhexa("b6x7p6b6x7p6"))
+				local sign = md5.sumhexa("PUT&" .. requri .. "&" .. timestamp .. "&" .. cl .. "&" .. md5.sumhexa("c0c232a1"))
 				print(sign)
 				print(cl)
-				print(md5.sumhexa("b6x7p6b6x7p6"))
+				print(md5.sumhexa("c0c232a1"))
 				print(requri)
 				print(timestamp)
 				print("--------------")
@@ -485,7 +486,7 @@ while true do
 					-- add post content-type and cookie
 					headers = {
 						-- ["Host"] = "openapi.ctrip.com",
-						["Authorization"] = "UpYun buyhome:" .. sign,
+						["Authorization"] = "UpYun jijilu:" .. sign,
 						["Date"] = timestamp,
 						-- ["Cache-Control"] = "no-cache",
 						-- ["Accept-Encoding"] = "gzip",
@@ -493,7 +494,7 @@ while true do
 						-- ["Content-MD5"] = md5.sumhexa(totalxml),
 						["Mkdir"] = "true",
 						["Connection"] = "keep-alive",
-						["Content-Type"] = "application/xml; charset=utf-8",
+						["Content-Type"] = "application/xml",-- ; charset=utf-8
 						["Content-Length"] = cl,
 						["User-Agent"] = "Hotel API AgentService by Jijilu version 0.5.1"
 					},
@@ -529,14 +530,22 @@ while true do
 				local respup = {};
 				print("<<<")
 				print("------------试预订有数据开始传云------")
-				prexml = string.gsub(string.gsub(LuaXML.str(prexml), "table ", "room "), "table", "rooms")
-				cl = string.len(prexml)
+				-- Chinese
+				local high_ascii_unroll = {}
+				for code = 128, 255 do
+				    high_ascii_unroll['&#' .. code .. ';'] = string.char(code)
+				end
+				prexml = string.gsub(string.gsub(LuaXML.str(prexml):gsub('&#%d+;', high_ascii_unroll), "table ", "room "), "table", "rooms");
+				-- prexml = '<?xml version=\"1.0\" encoding=\"GBK\"  ?>\n' .. prexml
+				prexml = '<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n' .. prexml
+				-- print(prexml)
+				cl = string.len(prexml);
 				local timestamp = os.date("%a, %d %b %Y %X GMT", os.time() - 8 * 3600)
 				local requri = "/biyifei/hotel/mango/" .. mission.jobId .. "/" .. mission.hotelId .. "/" .. redisidx .. "-prepay.xml";
-				local sign = md5.sumhexa("PUT&" .. requri .. "&" .. timestamp .. "&" .. cl .. "&" .. md5.sumhexa("b6x7p6b6x7p6"))
+				local sign = md5.sumhexa("PUT&" .. requri .. "&" .. timestamp .. "&" .. cl .. "&" .. md5.sumhexa("c0c232a1"))
 				print(sign)
 				print(cl)
-				print(md5.sumhexa("b6x7p6b6x7p6"))
+				print(md5.sumhexa("c0c232a1"))
 				print(requri)
 				print(timestamp)
 				print("--------------")
@@ -550,7 +559,7 @@ while true do
 					-- add post content-type and cookie
 					headers = {
 						-- ["Host"] = "openapi.ctrip.com",
-						["Authorization"] = "UpYun buyhome:" .. sign,
+						["Authorization"] = "UpYun jijilu:" .. sign,
 						["Date"] = timestamp,
 						-- ["Cache-Control"] = "no-cache",
 						-- ["Accept-Encoding"] = "gzip",
@@ -558,7 +567,7 @@ while true do
 						-- ["Content-MD5"] = md5.sumhexa(totalxml),
 						["Mkdir"] = "true",
 						["Connection"] = "keep-alive",
-						["Content-Type"] = "application/xml; charset=utf-8",
+						["Content-Type"] = "application/xml",-- ; charset=utf-8
 						["Content-Length"] = cl,
 						["User-Agent"] = "Hotel API AgentService by Jijilu version 0.5.1"
 					},
@@ -712,4 +721,4 @@ Content-Length:3
 ---------------------
 123
 
-]]
+--]]
