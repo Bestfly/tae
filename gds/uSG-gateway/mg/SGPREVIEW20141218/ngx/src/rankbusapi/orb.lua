@@ -1,10 +1,15 @@
--- Jijilu <huangqi@rhomobi.com> 20140925 (v0.5.1)
+-- Jijilu <huangqi@rhomobi.com> 20141218 (v0.5.7)
 -- License: same to the Lua one
 -- TODO: copy the LICENSE file
 -------------------------------------------------------------------------------
 -- begin of the idea : http://rhomobi.com/topics/
 -- Queues service of oRB for RankBus service
 -- load library
+--[[
+-- 0.5.5~ zset to hash
+-- 0.5.6~ replace to set for NOT set missing
+-- 0.5.7~ md5 precaculate
+--]]
 local JSON = require 'cjson'
 local base64 = require 'base64'
 package.path = "/data/usgcore/ngx/lib/?.lua;";
@@ -27,7 +32,8 @@ end
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
-	ngx.say("failed to instantiate redis: ", err)
+	-- ngx.say("failed to instantiate redis: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate redis: ", err)
 	return
 end
 -- lua socket timeout
@@ -46,7 +52,8 @@ if not r then
 end
 local memc, err = memcached:new()
 if not memc then
-    ngx.say("failed to instantiate memc: ", err)
+    -- ngx.say("failed to instantiate memc: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate memc: ", err)
     return
 end
 memc:set_timeout(3000) -- 3 sec
@@ -85,8 +92,8 @@ if ngx.var.request_method == "GET" then
 								ngx.print(error003("failed to get originality data from kvdb: ", tkey, err))
 								return
 							else
-								if string.find(res, "[0,1]/el%a%a%a/") ~= nil then
-									task[n] = res
+								if string.find(res, "/el%a%a%a/") ~= nil then
+									task[n] = string.sub(res, 33, -1)
 								else
 									task[n] = JSON.null
 									-- ngx.say("Bad data got from kvdb: ", tkey, err)
@@ -122,8 +129,9 @@ if ngx.var.request_method == "GET" then
 					else
 						if type(r) == "table" then
 							for n = 1, table.getn(r) do
-								task[n] = memc:get(ngx.var.que .. r[n])
-								if task[n] ~= nil then
+								res, err = memc:get(ngx.var.que .. r[n])
+								if res ~= nil then
+									task[n] = string.sub(res, 33, -1)
 									check = true;
 									resnum = resnum + 1;
 								end
@@ -152,13 +160,15 @@ end
 -- with 10 seconds max idle timeout
 local ok, err = memc:set_keepalive(10000, 1000)
 if not ok then
-    ngx.say("cannot set keepalive: ", err)
+    -- ngx.say("cannot set keepalive: ", err)
+	ngx.log(ngx.ERR, "failed to set keepalive with kvdb: ", err)
     return
 end
 -- put it into the connection pool of size 100,
 -- with 10 seconds max idle time
 local ok, err = red:set_keepalive(10000, 1000)
 if not ok then
-    ngx.say("failed to set keepalive: ", err)
+    -- ngx.say("failed to set keepalive: ", err)
+	ngx.log(ngx.ERR, "failed to set keepalive with Redis: ", err)
     return
 end

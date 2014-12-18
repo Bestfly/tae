@@ -1,10 +1,15 @@
--- Jijilu <huangqi@rhomobi.com> 20141020 (v0.5.2)
+-- Jijilu <huangqi@rhomobi.com> 20141218 (v0.5.7)
 -- License: same to the Lua one
 -- TODO: copy the LICENSE file
 -------------------------------------------------------------------------------
 -- begin of the idea : http://rhomobi.com/topics/
 -- Queues service of iRB for RankBus service
 -- load library
+--[[
+-- 0.5.5~ zset to hash
+-- 0.5.6~ replace to set for NOT set missing
+-- 0.5.7~ md5 precaculate
+--]]
 local JSON = require 'cjson'
 local base64 = require 'base64'
 package.path = "/data/usgcore/ngx/lib/?.lua;";
@@ -30,7 +35,8 @@ local error007 = JSON.encode({ ["resultCode"] = 7, ["description"] = "error007#R
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
-	ngx.say("failed to instantiate redis: ", err)
+	-- ngx.say("failed to instantiate redis: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate redis: ", err)
 	return
 end
 -- lua socket timeout
@@ -49,7 +55,8 @@ if not r then
 end
 local memc, err = memcached:new()
 if not memc then
-    ngx.say("failed to instantiate memc: ", err)
+    -- ngx.say("failed to instantiate memc: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate memc: ", err)
     return
 end
 memc:set_timeout(3000) -- 3 sec
@@ -102,20 +109,23 @@ else
 						local sc = pcontent.sc
 						local idx1, idx2, idx3, idx4 = string.find(pcontent.qn, "([a-z]+):([a-z]+)")
 						if dt ~= nil and uk ~= nil and idx3 ~= nil and idx4 ~= nil and idx2 == 9 then
-							local kvid = idx4 .. ngx.md5(uk)
+							local md5uk = ngx.md5(uk)
+							local kvid = idx4 .. md5uk
 							-- sc must NOT be nil
 							if sc ~= nil and sc ~= '' and sc ~= JSON.null then
 								if dt < 10 then
 									-- Q type data which been posted into RankBus first time
 									-- dt 01,00
 									local vb = pcontent.vb
+									local md5vb = ngx.md5(vb)
 									local share = string.sub(ngx.encode_base64(uk), 1, 3)
-									local sortkey = ngx.md5(uk);
+									local sortkey = md5uk;
 									local tkey = idx3 .. ":vals:" .. idx4 .. ":" .. share;
 									-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
+									-- callBack < 10
+									-- vb = retry .. pcontent.dt .. "/" .. idx4 .. "/" .. vb;
 									vb = pcontent.dt .. "/" .. idx4 .. "/" .. vb;
 									-- vb = idx4 .. "/" .. dt .. "/" .. vb;
-									-- local kvid = idx4 .. ngx.md5(uk);
 									local lit = string.sub(sc, 15, -1);
 									if lit ~= nil and lit ~= "" then
 										sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
@@ -138,15 +148,14 @@ else
 											local tvb = memc:get(kvid)
 											local tmd = ""
 											if tvb ~= nil then
-												tmd = ngx.md5(tvb)
+												tmd = string.sub(tvb, 1, 32)
 											end
-											if ngx.md5(vb) ~= tmd then
-												local ok = memc:replace(kvid, vb)
+											if md5vb ~= tmd then
+												local ok = memc:replace(kvid, md5vb .. vb)
 												if not ok then
 													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													return
 												else
-													local btmp = false;
 													local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
 													if dt ~= 1 then
 														local res, err = red:rpush(idx3 .. ":list", kvid)
@@ -154,7 +163,7 @@ else
 															ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 															return
 														else
-															btmp = true
+															ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 														end
 													else
 														local res, err = red:lpush(idx3 .. ":list", kvid)
@@ -162,14 +171,8 @@ else
 															ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
 															return
 														else
-															btmp = true
+															ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 														end
-													end
-													if btmp ~= true then
-														ngx.print(error003("failed to rpush or lpush tk into " .. idx3 .. ":list->>" .. err))
-														return
-													else
-														ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													end
 												end
 											else
@@ -185,35 +188,29 @@ else
 										if not res then
 											ngx.print(error003("failed to save uk's sc->>" .. tkey .. '|' .. uk .. '|' .. sc))
 											return
-										end
-										local ok = memc:set(kvid, vb)
-										if not ok then
-											ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
-											return
 										else
-											local btmp = false;
-											if dt ~= 1 then
-												local res, err = red:rpush(idx3 .. ":list", kvid)
-												if not res then
-													ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
-													return
-												else
-													btmp = true
-												end
-											else
-												local res, err = red:lpush(idx3 .. ":list", kvid)
-												if not res then
-													ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
-													return
-												else
-													btmp = true
-												end
-											end
-											if btmp ~= true then
-												ngx.print(error003("failed to rpush or lpush tk into " .. idx3 .. ":list->>" .. err))
+											local ok = memc:set(kvid, md5vb .. vb)
+											if not ok then
+												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												return
 											else
-												ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+												if dt ~= 1 then
+													local res, err = red:rpush(idx3 .. ":list", kvid)
+													if not res then
+														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
+														return
+													else
+														ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+													end
+												else
+													local res, err = red:lpush(idx3 .. ":list", kvid)
+													if not res then
+														ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
+														return
+													else
+														ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+													end
+												end
 											end
 										end
 									end
@@ -222,13 +219,12 @@ else
 										-- NOT Q type data which been posted into RankBus first
 										-- dt 12
 										local vb = pcontent.vb
-										local sortkey = ngx.md5(uk);
+										local sortkey = md5uk;
 										local tkey = "elg:vals:" .. idx3;
 										-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 										vb = dt .. "/" .. idx4 .. "/" .. vb;
 										-- vb = idx4 .. "/" .. dt .. "/" .. vb;
 										local kvid = idx3 .. sortkey;
-										
 										local lit = string.sub(sc, 15, -1);
 										if lit ~= nil and lit ~= "" then
 											sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
@@ -280,8 +276,8 @@ else
 							else
 								if dt >= 10 then
 									-- Job failure to Call back RankBus Q+
-									-- dt 11,10,21,20,31,30
-									-- local kvid = idx4 .. ngx.md5(uk);
+									-- dt 11,10,21,20,31,30 ~ 90,91
+									-- callBack < 10
 									local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
 									if tmp ~= 0 then
 										-- vb update within the mission being done.
@@ -299,20 +295,18 @@ else
 											ngx.print(error003("failed to get originality data from kvdb: " .. kvid .. "->> kv GET Error"))
 											return
 										else
-											local vb = dt .. string.sub(rdata, 3, -1)
+											local vb = string.sub(rdata, 1, 32) .. dt .. string.sub(rdata, 35, -1)
 											rdata, rerr = memc:replace(kvid, vb)
 											if not rdata then
 												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												return
 											else
-												-- local btmp = false;
 												if tonumber(string.sub(dt, 0, -1)) ~= 1 then
 													local res, err = red:rpush(idx3 .. ":list", kvid)
 													if not res or not tmp then
 														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
-														-- btmp = true
 														ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
 													end
 												else
@@ -321,7 +315,6 @@ else
 														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
-														-- btmp = true
 														ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
 													end
 												end
@@ -351,13 +344,15 @@ end
 -- with 10 seconds max idle timeout
 local ok, err = memc:set_keepalive(10000, 1000)
 if not ok then
-    ngx.say("cannot set keepalive: ", err)
+    -- ngx.say("cannot set keepalive: ", err)
+	ngx.log(ngx.ERR, "failed to set keepalive with kvdb: ", err)
     return
 end
 -- put it into the connection pool of size 100,
 -- with 10 seconds max idle time
 local ok, err = red:set_keepalive(10000, 1000)
 if not ok then
-    ngx.say("failed to set keepalive: ", err)
+    -- ngx.say("failed to set keepalive: ", err)
+	ngx.log(ngx.ERR, "failed to set keepalive with Redis: ", err)
     return
 end
