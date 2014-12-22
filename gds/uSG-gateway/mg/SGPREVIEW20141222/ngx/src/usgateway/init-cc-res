@@ -1,0 +1,176 @@
+GetSceneryList  http://10.10.5.222/index.php?c=scenery_list&m=index
+GetSceneryDetail        http://10.10.5.222/index.php?c=scenery_detail&m=index
+GetSceneryTrafficInfo   http://10.10.5.222/index.php?c=scenery_traffic&m=index
+GetSceneryImageList     http://10.10.5.222/index.php?c=scenery_image&m=index
+GetNearbyScenery        http://10.10.5.222/index.php?c=scenery_nearby&m=index
+GetSceneryPrice http://10.10.5.222/index.php?c=scenery_price&m=index
+hotel.list      http://api1.mangocity.com/HotelQuery/hotel/query/list
+hotel.detail    http://api1.mangocity.com/HotelQuery/hotel/query/detail
+hotel.booking.try       http://api1.mangocity.com/HotelOrder/hotel/booking/try
+hotel.order.create      http://api1.mangocity.com/HotelOrder/hotel/order/create
+hotel.payment.online    http://api1.mangocity.com/HotelOrder/hotel/payment/online
+vacations.order.createTicket    http://api1.mangocity.com/vacations/createTicket.shtml
+vacations.order.createFree      http://api1.mangocity.com/vacations/createFree.shtml
+vacations.order.createGroupTour http://api1.mangocity.com/vacations/createGroupTour.shtml
+vacations.order.paymentonline   http://api1.mangocity.com/vacations/paymentonline.shtml
+Ship.searchShipMemOrders        http://api1.mangocity.com/ships/api/searchShipMemOrders.shtml
+Ship.searchLineCruises  http://api1.mangocity.com/ships/api/searchLineCruises.shtml
+Ship.searchShipCompanys http://api1.mangocity.com/ships/api/searchShipCompanys.shtml
+Ship.searchStartCitys   http://api1.mangocity.com/ships/api/searchStartCitys.shtml
+Ship.searchLineTypes    http://api1.mangocity.com/ships/api/searchLineTypes.shtml
+Ship.searchStartDates   http://api1.mangocity.com/ships/api/searchStartDates.shtml
+Ship.getShipDetail      http://api1.mangocity.com/ships/api/getShipDetail.shtml
+Ship.getShipChrg        http://api1.mangocity.com/ships/api/getShipChrg.shtml
+Ship.searchStartDatePrices      http://api1.mangocity.com/ships/api/searchStartDatePrices.shtml
+Ship.searchShipTrips    http://api1.mangocity.com/ships/api/searchShipTrips.shtml
+Ship.searchShipPhotos   http://api1.mangocity.com/ships/api/searchShipPhotos.shtml
+Ship.getShipArticle     http://api1.mangocity.com/ships/api/getShipArticle.shtml
+Ship.complete   http://api1.mangocity.com/ships/api/complete.shtml
+Ship.getOrderDetail     http://api1.mangocity.com/ships/api/getOrderDetail.shtml
+GetPriceCalendar        http://10.10.5.222/index.php?c=ticket_price_calendar&m=index
+vacation.list   http://10.10.5.222/index.php?c=vacation_list&m=index&d=vacation
+vacation.detail http://10.10.5.222/index.php?c=vacation_detail&m=index&d=vacation
+vacation.optionlist     http://10.10.5.222/index.php?c=vacation_option_list&m=index&d=vacation
+vacation.pricecalendar  http://10.10.5.222/index.php?c=vacation_price_calendar&m=index&d=vacation
+vacation.imagelist      http://10.10.5.222/index.php?c=vacation_image&m=index&d=vacation
+GetTicketOptionList     http://10.10.5.222/index.php?c=scenery_option_list&m=index
+hotel.payment.query     http://api1.mangocity.com/HotelOrder/hotel/payment/query
+base.resUpdate  http://10.10.5.222/base.php?c=recource_update&m=index
+vacations.order.orderlist       http://api1.mangocity.com/vacations/orderList.shtml
+vacations.order.orderdetail     http://api1.mangocity.com/vacations/orderDetail.shtml
+vacations.order.getTicketSession        http://api1.mangocity.com/vacations/getTicketSession.shtml
+payment.order.createOrder       http://api1.mangocity.com/wpp/gateway/payment.json
+Ship.searchLineThemes   http://api1.mangocity.com/ships/api/searchLineThemes.shtml
+vacations.order.paymentquery    http://api1.mangocity.com/vacations/paymentquery.shtml
+tmc.protocolPat http://ro.mangocity.com/TFI/servlet/protocolPatServlet.do
+Ship.searchStartAddress http://api1.mangocity.com/ships/api/searchStartAddress.shtml
+mbr.generateMobileRandomCode    http://10.10.5.166/rdcdVerfct/generateMobileRandomCode.do
+mbr.checkMobileRandomCode       http://10.10.5.166/rdcdVerfct/checkMobileRandomCode.do
+mbr.checkMobileWhitelist        http://10.10.5.166/rdcdVerfct/checkMobileWhitelist.do
+payment.weixinapp.createOrder   http://ro.mangocity.com/MpmWeb/paygateway/SpecialService_wx.action
+9765229986      19888395-A3B8-4B67-93F3-B20340F73F47
+9953226998      19958883-A3B8-4B67-93F3-F73F47B20340
+9953310001      55A27B7D-C526-4F15-B2B9-F6DD9B068268
+9953310002      E1F6720E-0EA6-48C2-8648-FB9CC9727757
+9953310003      4B337F6B-C669-482A-B376-425A0C4E6320
+9953310004      2493949B-E676-4CE4-9A91-B9AE619128A6
+9953310005      E73F9E6F-9BF5-4755-8360-7D1CE6F9E9E3
+9953310006      B4B876AF-E0A0-451C-85CE-2D4AB817736B
+9953310007      69021C92-FB62-4FE9-AC3B-9ACA13DD2C20
+9953310008      F1EB561C-CA9F-438E-AAB8-01DE03F44720
+9953310009      8DCBC864-5FCC-46A8-A7E0-3AB87C01CCB5
+9953310010      7FFAD0D5-706C-4573-AE7C-360B610A50AB
+9953310011      5CC32823-62E2-402F-A0BB-978FEB39F968
+9953310012      E13A5E4C-CF6C-4560-B2B9-5E2DB20ED77F
+9953310013      72239F51-6E02-45D1-ADB9-115C3A14AD69
+9953310014      34127D75-74DF-4EF9-A1E9-8375264F024A
+9953310015      5AC354C6-115E-4819-8A24-464440448DC4
+9953310016      ABD8E930-CD02-43D2-BDC7-3F28C61C01A7
+9953310017      F904226C-4909-40C1-8A84-A73EE783427C
+9953310018      C2B219D2-E282-45EA-8ED4-000F2D44EDBF
+9953310019      260585B0-27DC-4F30-A64A-C41210C02AE8
+9953310020      5296ACBC-FCA8-4856-B2A1-B924B20E64D5
+9953310021      7DA6E4EC-3505-406F-A086-E9AD4E30CBBA
+9953310022      2E19ACF1-908C-40BF-A39B-0BA8A39A242E
+9953310023      6B29AAFF-7DA1-477F-ABE9-08608DFC016D
+9953310024      C7258B5F-4C06-4FB9-B4E2-F5B354342C69
+9953310025      37E96B51-00FC-4CB4-A0FB-9383418D6DB7
+9953310026      C7488935-F715-439D-96CB-4E47C4FE551E
+9953310027      C938FECB-2345-47C1-9F72-E44A40A5C328
+9953310028      F2C5315A-0958-44A0-82C0-0A8061132F74
+9953310029      055FA352-BD5D-4B4A-A24A-63F27C48DE66
+9953310030      FB47DA4A-C19D-43D5-801B-15F0388349B4
+9953310031      16515474-A66A-4DDA-B3B7-2B084EA16AFF
+9953310032      4898D402-90D7-4483-8D37-C79817ACF30D
+9953310033      CAF4DEB6-11CA-44A9-96E3-ABC05717058F
+9953310034      4A68A43A-B303-454D-AD75-2BA05868BB0E
+9953310035      DE8CB937-04E6-409E-85BA-4FAA3A47F0FB
+9953310036      C7EE9407-A619-4474-B519-95B0196B5CD2
+9953310037      36AEE5C7-33B5-4317-DC59-2681B278E0C7
+9953310038      CC1FAAB2-604C-A31F-E253-8A099B34AD2E
+9953310039      B15F1190-72F7-E19B-BBC9-75F4543258F2
+9953310040      37169F0E-7947-F2B4-57F5-34365CD61982
+9953310041      5D8233B3-85C7-37AB-436F-8EDE879E22AA
+9953510001      08B1F839-B074-11B7-4DBB-99170835CBC9
+9953510002      6A38C5C0-01A4-A776-77A4-AAA4F65C91B1
+9953510003      3218EDAB-9109-E2BA-2E8F-DDA4B67BC699
+9953310042      4A88D8E7-FA5E-CEAA-E447-094AD5563F99
+9953310043      5013E01E-E665-98A9-3F4B-4684113F8B84
+9953310044      D60627CB-36CB-EBDD-9186-3CB59D4E87EA
+9953310045      5FDBE9C3-14F8-5EC7-C888-C59E144CCE05
+9953310046      387F14F0-2285-A84C-4840-F7FDD9259467
+9953310047      FC4866F1-89F5-20F5-145A-4190113F788A
+9953610001      AC0AEFA2-88BC-6932-D755-FFEB30067AD8
+9953610002      C94E2FDF-12C5-300A-F166-3FD4DDCA04EB
+9953610003      EC06259C-A64E-5542-02ED-E4E986ACBB5A
+9953610004      927EEF78-165F-216C-F61F-36F8CD05C459
+9953610005      328719F8-149D-63D8-5022-05BB7372802A
+9953610006      EAFF4A57-DB76-3902-A7F1-882A924599B5
+9953310048      CA6F1C61-21B6-E33D-B983-154783CA3F8B
+9953310049      810FC2A6-CEEA-2ACC-3A32-8D38FF9A0D2B
+9953610007      A7BFED25-E2EF-AF52-E1ED-A104629292B4
+9953310050      72575EAC-68A5-663E-1405-AABB0B086A1C
+9953310051      F8E48ADA-F503-7D98-FA80-
+1210528F9CA
+9953310052      00DE5058-808B-0870-004B-
+371F4B458F8
+9953310053      EE7CABD7-100B-EF3C-239F-
+4C84F8C6A58
+9953310054      3677442B-1AF2-D7E2-BCD8-
+79FF1CA162B
+9953310055      FDCA0FCB-9CFD-ABB5-B611-
+AAF7CF377B8
+9953310056      E0AA1C8D-A852-05DB-C604-
+D268942F535
+9953310057      B1FA77F3-B760-6508-3010-
+9A5AC68B500
+9953310058      E7C9BC5C-6095-CDB1-8416-
+A273C2BDE92
+9953310059      9B7ECF87-5C1E-B403-B822-
+DBCC3ADE9BD
+9953310060      BF378F74-0365-7C99-8887-
+34FA4484DEA
+9953310061      CBBE3EE2-1F6F-0847-10CA-
+2A5785DF7F2
+9953310062      272A3DBF-0905-9BAF-FF58-
+56082BBC49D
+9953310063      F76AFEB8-ACB5-11AA-3A7F-
+5A4B43129A1
+9953310064      24FC99DA-0767-A025-5BA6-
+193518FF013
+9953310065      E30C6FCF-2CAA-9E56-F6C7-
+16996604051
+9953310066      ABCBEA8A-02AA-F87D-B0B1-
+BE7FF998420
+9953310067      4EE740EA-8C89-139A-75DA-
+C474159A30E
+9953310068      6FD0C5BE-7B4F-ED47-2787-
+A560BFADACC
+9953310069      50F36369-00DF-E426-181E-
+15AE46F08EA
+9953310070      527525BC-C93B-9D74-211B-
+3F5028443E5
+9953310071      2325C042-4324-C3D9-E899-
+90D244EC53E
+9953310072      47B52A2B-6EB1-00BE-AA3F-
+F38C3CA9C43
+9953310073      1E1EA5FA-F1C2-5D1A-714A-
+704EA4E5BD3
+9953310074      96C64A06-8E45-EAA7-0286-
+779C8FD7BE2
+9953310075      5C4E8EBF-39A6-3FDF-915A-
+A13F8AD664C
+9953310076      416562DF-8899-DBC3-50E7-
+01FBE648CD2
+9953310077      CEBC08DC-032F-21DB-3AE2-
+887430A4D54
+9953310078      ED265BF3-2E6F-A0DC-2D65-
+D20FACC8830
+9953310079      8EF22B46-A703-7F57-40B9-
+621F6EA2921
+9953310080      78DEB219-A848-2B29-C874-
+01E0001594F
+9953310081      184EA407-1D5F-EDBE-2F1B-
+5C7A267813F
+9953310082      529C1E17-7F0E-10B5-DC12-
+5E29420F465
