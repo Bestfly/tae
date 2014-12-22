@@ -29,12 +29,12 @@ function error009 (code, mes)
 	local res = JSON.encode({ ["resultCode"] = code, ["description"] = mes});
 	return res
 end
-
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
-        ngx.say("failed to instantiate redis: ", err)
-        return
+	-- ngx.say("failed to instantiate redis: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate redis: ", err)
+	return
 end
 -- lua socket timeout
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
@@ -42,15 +42,14 @@ red:set_timeout(3000) -- 3 sec
 -- nosql connect
 local ok, err = red:connect("10.10.130.93", 61390)
 if not ok then
-        ngx.print(error009("failed to connect redis: ", err))
-        return
+	ngx.print(error003("failed to connect redis: ", err))
+	return
 end
 local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
 if not r then
     ngx.print(error009("failed to authenticate: ", e))
     return
 end
-
 -- Cloud set.
 function urlencode(s) return s and (s:gsub("[^a-zA-Z0-9.~_-]", function (c) return string.format("%%%02x", c:byte()); end)); end
 function urldecode(s) return s and (s:gsub("%%(%x%x)", function (c) return char(tonumber(c,16)); end)); end
@@ -170,20 +169,21 @@ if ngx.var.request_method == "POST" then
 							forwarduri = sg:get(srvname);
 							if forwarduri ~= JSON.null and forwarduri ~= nil then
 								local bollsrv = false
+								local tb = ""
 								if srvname == "hotel.list" then
 									local pc = JSON.decode(pcontent)
 									pr = pc.Request
 									CheckInDate = string.gsub(pr.CheckInDate, "-", "")
 									CheckOutDate = string.gsub(pr.CheckOutDate, "-", "")
-									local tb, er = red:hget(pr.CityId .. ":" .. CheckInDate, CheckOutDate .. pr.PageIndex)
-									if not tb or tb ~= nil then
+									tb, er = red:hget("acc:htl:" .. pr.CityId .. ":" .. CheckInDate, CheckOutDate .. pr.PageIndex)
+									if not tb or tb == nil or tb == "" then
 										bollsrv = true
 									end
 								else
 									bollsrv = true
 								end
 								if bollsrv ~= true then
-									ngx.print("tb")
+									ngx.print(tb)
 								else
 									local hc = http:new()
 									local ok, code, headers, status, body = hc:request {
@@ -247,6 +247,7 @@ end
 -- with 10 seconds max idle time
 local ok, err = red:set_keepalive(10000, 1000)
 if not ok then
-    ngx.say("failed to set keepalive: ", err)
+    -- ngx.say("failed to set keepalive: ", err)
+	ngx.log(ngx.ERR, "failed to set keepalive with Redis: ", err)
     return
 end

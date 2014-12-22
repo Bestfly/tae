@@ -22,7 +22,7 @@ local params = {
 }
 local client = redis.connect(params)
 client:auth("142ffb5bfa1-cn-jijilu-dg-a75")
-client:select(0) -- for testing purposes
+-- client:select(0) -- for testing purposes
 -- commands defined in the redis.commands table are available at module
 -- level and are used to populate each new client instance.
 redis.commands.hset = redis.command('hset')
@@ -140,7 +140,7 @@ if code == 200 then
 		resxml = resxml .. respbody[i]
 	end
 	print(resxml)
-	client:hset("PEK:20150107","201501101",resxml)
+	client:hset("acc:htl:PEK:20150107","201501101",resxml)
 else
 	print(code,status,request)
 end
