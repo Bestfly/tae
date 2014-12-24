@@ -46,15 +46,15 @@ redis.commands.lrange = redis.command('lrange')
 -- start job.
 while client do
 	-- local tmpdata = {};
-	local argscore = client:zrange("task:hot", 0, 0, "withscores")
-	local args = client:zrangebyscore("task:hot", "-inf", argscore[1][2])
-	local argidx = client:zrank("task:hot", args[table.getn(args)]) + 1
+	local argscore = client:zrange("acc:task:hot", 0, 0, "withscores")
+	local args = client:zrangebyscore("acc:task:hot", "-inf", argscore[1][2])
+	local argidx = client:zrank("acc:task:hot", args[table.getn(args)]) + 1
 	for k, v in pairs(args) do
 		print(v)
 		-- table.insert(tmpdata, v)
-		client:rpush("loc:queues", "0/" .. v)
+		client:rpush("acc:loc:queues", "0/" .. v)
 		-- print(argscore[1][2])
-		client:zadd("task:hot", argscore[1][2] * 2, v)
+		client:zadd("acc:task:hot", argscore[1][2] * 2, v)
 	end
 	--[[
 	--giveup activemq.
@@ -68,7 +68,7 @@ while client do
 	-- client:rpush("loc:queues", JSON.encode(tmpdata))
 	-- print(args[table.getn(args)])
 	print(argidx)
-	local nextargscore = client:zrange("task:hot", argidx, argidx, "withscores")
+	local nextargscore = client:zrange("acc:task:hot", argidx, argidx, "withscores")
 	local interval = nextargscore[1][2] - argscore[1][2]
 	print(interval)
 	print("\r\n---------------------\r\n");
