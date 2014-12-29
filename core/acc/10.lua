@@ -27,7 +27,7 @@ local params = {
 
 local client = redis.connect(params)
 client:auth("142ffb5bfa1-cn-jijilu-dg-a75")
-client:select(0) -- for testing purposes
+-- client:select(0) -- for testing purposes
 -- commands defined in the redis.commands table are available at module
 -- level and are used to populate each new client instance.
 redis.commands.hset = redis.command('hset')

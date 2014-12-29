@@ -298,7 +298,8 @@ while true do
 					print("++++ Total rooms :" .. ltrb .. "/" .. i .. " --->>")
 					-- print(trb[i].status)
 					local level = 1
-					while tonumber(trb[i].status) ~= 1 do
+					-- while tonumber(trb[i].status) ~= 1 do
+					while string.find(trb[i].status, "1") == nil do
 					-- while level do
 						local c1, r1 = fatchpri(th, mission.baseUrl, mission.urlRight .. "&roomId=" .. trb[i].id)
 						-- print(c1,r1)

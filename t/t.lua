@@ -262,3 +262,17 @@ show("after quickSort array", array)
 local lens = selectSort(exp, function(x,y) return y<x end)
 show("after selectsort array", exp)
 print(exp[1],exp[lens])
+
+
+function date2time(tkey)
+	return os.time({year=string.sub(tkey, 1, 4), month=tonumber(string.sub(tkey, 5, 6)), day=tonumber(string.sub(tkey, 7, 8)), hour="00"})
+end
+
+print(date2time(20141228))
+
+if string.find("0|0|0", "1") == nil then
+	print(string.find("0|0|0", "1"))
+	print(JSON.null)
+else
+	print(JSON.null)
+end

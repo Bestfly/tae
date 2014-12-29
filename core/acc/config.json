@@ -1,7 +1,7 @@
 {
-    "host": "rankbus.com",
+    "host": "10.10.130.93",
     "port": 61390,
-    "maxtime": 60,
+    "maxtime": 30,
     "cachetime": [
         {
             "range": [
@@ -13,28 +13,28 @@
         {
             "range": [
                 3,
-                7
+                6
             ],
             "expire": 50
         },
         {
             "range": [
-                7,
-                15
+                6,
+                10
             ],
             "expire": 80
         },
         {
             "range": [
-                15,
-                30
+                10,
+                16
             ],
             "expire": 120
         },
         {
             "range": [
-                30,
-                60
+                16,
+                30
             ],
             "expire": 150
         }

@@ -35,6 +35,7 @@ redis.commands.zrange = redis.command('zrange')
 redis.commands.expire = redis.command('expire')
 redis.commands.zrank = redis.command('zrank')
 redis.commands.zcard = redis.command('zcard')
+redis.commands.lpop = redis.command('lpop')
 function sleep(n)
    socket.select(nil, nil, n)
 end
@@ -86,6 +87,101 @@ function collect(s)
 	end
 	return stack[1]
 end
+function date2time(tkey)
+	return os.time({year=string.sub(tkey, 1, 4), month=tonumber(string.sub(tkey, 5, 6)), day=tonumber(string.sub(tkey, 7, 8)), hour="00"})
+end
+
+-- start job.
+while client do
+	local args,err = client:lpop("acc:loc:queues")
+	if args ~= nil then
+		-- print(args)
+		-- 0/SZX/20141227/
+		city = string.sub(args,3,5)
+		-- print(city)
+		gdate = string.sub(args,7,-2)
+		-- print(gdate)
+		gd = date2time(gdate)
+		gdate1 = os.date("%Y-%m-%d", gd)
+		for n = 1, 15 do
+			bdate = os.date("%Y%m%d", gd + n* 86400)
+			bdate1 = os.date("%Y-%m-%d", gd + n* 86400)
+			local request = ([=[
+			{
+			    "Request": {
+			        "CityId": "%s",
+			        "GroupId": 0,
+			        "LowRate": 0,
+			        "CheckOutDate": "%s",
+			        "PageSize": 10,
+			        "CheckInDate": "%s",
+			        "HighRate": 999999,
+			        "ProductProperties": "All",
+			        "Channel": "3G",
+			        "Sort": "Default",
+			        "PageIndex": 1
+			    },
+			    "Version": 1.100000023841858
+			}]=]):format(city,bdate1,gdate1)
+			print(request)
+			-- init response table
+			
+			local respbody = {};
+			local body, code, headers, status = http.request {
+				-- url = "http://cloudavh.com/data-gw/index.php",
+				url = "http://api1.mangocity.com/HotelQuery/hotel/query/list",
+				-- proxy = "http://10.123.74.137:808",
+				-- proxy = "http://" .. tostring(arg[2]),
+				timeout = 30000,
+				method = "POST", -- POST or GET
+				-- add post content-type and cookie
+				-- headers = { ["Content-Type"] = "application/x-www-form-urlencoded", ["Content-Length"] = string.len(form_data) },
+				-- headers = { ["Host"] = "flight.itour.cn", ["X-AjaxPro-Method"] = "GetFlight", ["Cache-Control"] = "no-cache", ["Accept-Encoding"] = "gzip,deflate,sdch", ["Accept"] = "*/*", ["Origin"] = "chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm", ["Connection"] = "keep-alive", ["Content-Type"] = "application/json", ["Content-Length"] = string.len(JSON.encode(request)), ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36" },
+				headers = {
+					-- ["Host"] = "openapi.ctrip.com",
+					["data-format"] = "json",
+					-- ["SOAPAction"] = "http://ctrip.com/Request",
+					["Cache-Control"] = "no-cache",
+					-- ["Accept-Encoding"] = "gzip",
+					["Accept"] = "*/*",
+					["Connection"] = "keep-alive",
+					["Content-Type"] = "application/json; charset=utf-8",
+					["Content-Length"] = string.len(request),
+					["User-Agent"] = "Hotel API AgentService by Jijilu version 0.5.1"
+				},
+				source = ltn12.source.string(request),
+				sink = ltn12.sink.table(respbody)
+			}
+			if code == 200 then
+				local resxml = "";
+				local reslen = table.getn(respbody)
+				-- print(reslen)
+				for i = 1, reslen do
+					-- print(respbody[i])
+					resxml = resxml .. respbody[i]
+				end
+				-- print(resxml)
+				local res, err = client:hset("acc:htl:" .. city .. ":" .. gdate, bdate .. "1", resxml)
+				if not res then
+					print("-------Failed to hset " .. "acc:htl:" .. city .. ":" .. gdate .. "--------")
+				else
+					client:expire("acc:htl:" .. city .. ":" .. gdate, (gd - os.time()))
+					print("-------well done " .. "acc:htl:" .. city .. ":" .. gdate .. "--------")
+				end
+			else
+				print(code,status,request)
+			end
+		end
+	else
+		print("------------NO mission left-----------")
+		sleep(8)
+	end
+	-- break;
+end
+	
+	
+--[[	
+	
 local request = ([=[{
     "Request": {
         "CityId": "%s",
@@ -144,3 +240,5 @@ if code == 200 then
 else
 	print(code,status,request)
 end
+
+--]]
