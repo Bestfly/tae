@@ -40,13 +40,16 @@ function formencode(form)
 end
 
 local baseurl = "http://www.skyecho.com";
-local md5uri = "/cgishell/module/xml/air_other.pl?";
-
+-- local md5uri = "/cgishell/module/xml/air_other.pl?";
+local md5uri = "/cgishell/module/xml/Service_data.pl?"
 local Corp_ID = "MANGGO";
 local md5key = "D%d3L8#F";
+-- FDNEWD  & CLSAGO
 -- local args = ("Air_date=2014.06.30&Airline=CZ&Arrive=CSX&Corp_ID=%s&Depart=CAN&Type=FDBLKD"):format(Corp_ID)
-local args = ("Air_date=2014.06.30&Airline=CZ&Corp_ID=%s&Trip=SZXSHA&Type=FD"):format(Corp_ID)
-local sign = string.upper(md5.sumhexa(args))
+-- local args = ("Air_date=2014.12.31&Airline=CZ&Corp_ID=%s&Trip=SZXSHA&Type=FD"):format(Corp_ID)
+local args = ("Corp_ID=%s&STime=20141229135901&Type_ID=CLSAGO"):format(Corp_ID)
+print(args .. md5key)
+local sign = string.upper(md5.sumhexa(args .. md5key))
 args = args .. "&Sign=" .. sign
 print("--------------")
 local respbody = {};
@@ -61,8 +64,6 @@ local body, code, headers, status = http.request {
 	timeout = 10000,
 	method = "GET", -- POST or GET
 	-- add post content-type and cookie
-	-- headers = { ["Content-Type"] = "application/x-www-form-urlencoded", ["Content-Length"] = string.len(form_data) },
-	-- headers = { ["Host"] = "flight.itour.cn", ["X-AjaxPro-Method"] = "GetFlight", ["Cache-Control"] = "no-cache", ["Accept-Encoding"] = "gzip,deflate,sdch", ["Accept"] = "*/*", ["Origin"] = "chrome-extension://fdmmgilgnpjigdojojpjoooidkmcomcm", ["Connection"] = "keep-alive", ["Content-Type"] = "application/json", ["Content-Length"] = string.len(JSON.encode(request)), ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.65 Safari/537.36" },
 	headers = {
 		-- ["Host"] = "yougola.sinaapp.com",
 		-- ["SOAPAction"] = "http://ctrip.com/Request",
@@ -91,4 +92,11 @@ for i = 1, reslen do
 	-- print(respbody[i])
 	resjson = resjson .. respbody[i]
 end
-print(resjson)
+-- print(resjson)
+local wname = "/data/logs/rholog.txt"
+local wfile = io.open(wname, "a+");
+wfile:write(os.date());
+wfile:write("\r\n---------------------\r\n");
+wfile:write(resjson);
+wfile:write("\r\n---------------------\r\n");
+io.close(wfile);
