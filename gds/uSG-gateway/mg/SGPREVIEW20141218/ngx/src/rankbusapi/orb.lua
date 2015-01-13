@@ -40,7 +40,7 @@ end
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
 red:set_timeout(3000) -- 3 sec
 -- nosql connect
-local ok, err = red:connect("10.10.130.93", 61390)
+local ok, err = red:connect("10.171.99.210", 61390)
 if not ok then
 	ngx.print(error003("failed to connect redis: ", err))
 	return
@@ -57,7 +57,7 @@ if not memc then
     return
 end
 memc:set_timeout(3000) -- 3 sec
-local ok, err = memc:connect("10.10.130.93", 61978)
+local ok, err = memc:connect("127.0.0.1", 61978)
 if not ok then
     ngx.print(error003("failed to connect: ", err))
     return
@@ -85,30 +85,37 @@ if ngx.var.request_method == "GET" then
 							task[n] = JSON.null
 							break;
 						else
-							-- local tkey = res[2];
-							local tkey = res;
-							res, err = memc:get(tkey)
-							if not res then
-								ngx.print(error003("failed to get originality data from kvdb: ", tkey, err))
-								return
+							if not red:srem(ngx.var.que .. ":sets", res) then
+								red:lpush(ngx.var.que .. ":list", res)
+								ngx.log(ngx.ERR, error003("failed to srem data of sets index: ", res))
+								ngx.print(error003("failed to srem data of sets index: ", res))
 							else
-								if string.find(res, "/el%a%a%a/") ~= nil then
-									task[n] = string.sub(res, 33, -1)
-								else
-									task[n] = JSON.null
-									-- ngx.say("Bad data got from kvdb: ", tkey, err)
-									-- return
-								end
-								check = true;
-								resnum = resnum + 1;
-								-- Cancel delete the vd data for webservice developing via redis indexsystem
-								--[[
-								res, err = memc:delete(tkey)
+								-- local tkey = res[2];
+								local tkey = res;
+								res, err = memc:get(tkey)
 								if not res then
-									ngx.print(error003("failed to delete originality data of dip: ", tkey, err))
+									ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", tkey, err))
+									ngx.print(error003("failed to get originality data from kvdb: ", tkey, err))
 									return
+								else
+									if string.find(res, '[0,1]/%a%a%a%a%a/') ~= nil then
+										task[n] = string.sub(res, 33, -1)
+									else
+										task[n] = JSON.null
+										-- ngx.say("Bad data got from kvdb: ", tkey, err)
+										-- return
+									end
+									check = true;
+									resnum = resnum + 1;
+									-- Cancel delete the vd data for webservice developing via redis indexsystem
+									--[[
+									res, err = memc:delete(tkey)
+									if not res then
+										ngx.print(error003("failed to delete originality data of dip: ", tkey, err))
+										return
+									end
+									--]]
 								end
-								--]]
 							end
 						end
 					end

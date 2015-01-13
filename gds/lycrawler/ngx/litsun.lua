@@ -9,7 +9,7 @@ local http = require 'socket.http'
 -- local JSON = require 'cjson'
 local md5 = require 'md5'
 -- local zlib = require 'zlib'
-local base64 = require 'base64'
+-- local base64 = require 'base64'
 -- local crypto = require 'crypto'
 -- local client = require 'soap.client'
 function urlencode(s) return s and (s:gsub("[^a-zA-Z0-9.~_-]", function (c) return string.format("%%%02x", c:byte()); end)); end
@@ -47,7 +47,8 @@ local md5key = "D%d3L8#F";
 -- FDNEWD  & CLSAGO
 -- local args = ("Air_date=2014.06.30&Airline=CZ&Arrive=CSX&Corp_ID=%s&Depart=CAN&Type=FDBLKD"):format(Corp_ID)
 -- local args = ("Air_date=2014.12.31&Airline=CZ&Corp_ID=%s&Trip=SZXSHA&Type=FD"):format(Corp_ID)
-local args = ("Corp_ID=%s&STime=20141229135901&Type_ID=CLSAGO"):format(Corp_ID)
+-- local args = ("Corp_ID=%s&STime=20141129135901&Type_ID=CLSAGO"):format(Corp_ID)
+local args = ("Corp_ID=%s&STime=&Type_ID=CLSAGO"):format(Corp_ID)
 print(args .. md5key)
 local sign = string.upper(md5.sumhexa(args .. md5key))
 args = args .. "&Sign=" .. sign
@@ -92,7 +93,8 @@ for i = 1, reslen do
 	-- print(respbody[i])
 	resjson = resjson .. respbody[i]
 end
--- print(resjson)
+print(resjson)
+--[[
 local wname = "/data/logs/rholog.txt"
 local wfile = io.open(wname, "a+");
 wfile:write(os.date());
@@ -100,3 +102,4 @@ wfile:write("\r\n---------------------\r\n");
 wfile:write(resjson);
 wfile:write("\r\n---------------------\r\n");
 io.close(wfile);
+--]]

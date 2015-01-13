@@ -43,7 +43,7 @@ end
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
 red:set_timeout(3000) -- 3 sec
 -- nosql connect
-local ok, err = red:connect("10.10.130.93", 61390)
+local ok, err = red:connect("10.171.99.210", 61390)
 if not ok then
 	ngx.print(error003("failed to connect redis: ", err))
 	return
@@ -60,7 +60,7 @@ if not memc then
     return
 end
 memc:set_timeout(3000) -- 3 sec
-local ok, err = memc:connect("10.10.130.93", 61978)
+local ok, err = memc:connect("127.0.0.1", 61978)
 if not ok then
     ngx.print(error003("failed to connect: ", err))
     return
@@ -111,16 +111,17 @@ else
 						if dt ~= nil and uk ~= nil and idx3 ~= nil and idx4 ~= nil and idx2 == 9 then
 							local md5uk = ngx.md5(uk)
 							local kvid = idx4 .. md5uk
+							local vb = pcontent.vb
+							local md5vb = ngx.md5(vb)
+							local share = string.sub(ngx.encode_base64(uk), 1, 3)
+							local sortkey = md5uk;
+							local tkey = idx3 .. ":vals:" .. idx4 .. ":" .. share;
+							local tset = idx3 .. ":sets";
 							-- sc must NOT be nil
 							if sc ~= nil and sc ~= '' and sc ~= JSON.null then
 								if dt < 10 then
 									-- Q type data which been posted into RankBus first time
 									-- dt 01,00
-									local vb = pcontent.vb
-									local md5vb = ngx.md5(vb)
-									local share = string.sub(ngx.encode_base64(uk), 1, 3)
-									local sortkey = md5uk;
-									local tkey = idx3 .. ":vals:" .. idx4 .. ":" .. share;
 									-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 									-- callBack < 10
 									-- vb = retry .. pcontent.dt .. "/" .. idx4 .. "/" .. vb;
@@ -149,6 +150,7 @@ else
 											local tmd = ""
 											if tvb ~= nil then
 												tmd = string.sub(tvb, 1, 32)
+												tmd = ngx.md5(tmd)
 											end
 											if md5vb ~= tmd then
 												local ok = memc:replace(kvid, md5vb .. vb)
@@ -156,23 +158,31 @@ else
 													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													return
 												else
-													local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
-													if dt ~= 1 then
-														local res, err = red:rpush(idx3 .. ":list", kvid)
-														if not res or not tmp then
-															ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
-															return
+													if red:sismember(tset, kvid) ~= 1 then
+														-- local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
+														if dt ~= 1 then
+															local res, err = red:rpush(idx3 .. ":list", kvid)
+															local rset, eset = red:sadd(tset, kvid)
+															if not res or eset then
+															-- if not res or not tmp then
+																ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
+																return
+															else
+																ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+															end
 														else
-															ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+															local res, err = red:lpush(idx3 .. ":list", kvid)
+															local rset, eset = red:sadd(tset, kvid)
+															if not res or eset then
+															-- if not res or not tmp then
+																ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
+																return
+															else
+																ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+															end
 														end
 													else
-														local res, err = red:lpush(idx3 .. ":list", kvid)
-														if not res or not tmp then
-															ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
-															return
-														else
-															ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
-														end
+														ngx.print(error005)
 													end
 												end
 											else
@@ -196,7 +206,8 @@ else
 											else
 												if dt ~= 1 then
 													local res, err = red:rpush(idx3 .. ":list", kvid)
-													if not res then
+													local rset, eset = red:sadd(tset, kvid)
+													if not res or eset then
 														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
@@ -204,7 +215,8 @@ else
 													end
 												else
 													local res, err = red:lpush(idx3 .. ":list", kvid)
-													if not res then
+													local rset, eset = red:sadd(tset, kvid)
+													if not res or eset then
 														ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
@@ -278,6 +290,7 @@ else
 									-- Job failure to Call back RankBus Q+
 									-- dt 11,10,21,20,31,30 ~ 90,91
 									-- callBack < 10
+									--[[
 									local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
 									if tmp ~= 0 then
 										-- vb update within the mission being done.
@@ -290,6 +303,7 @@ else
 											ngx.print(error005)
 										end
 									else
+									--]]
 										local rdata, rerr = memc:get(kvid)
 										if not rdata then
 											ngx.print(error003("failed to get originality data from kvdb: " .. kvid .. "->> kv GET Error"))
@@ -301,26 +315,34 @@ else
 												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												return
 											else
-												if tonumber(string.sub(dt, 0, -1)) ~= 1 then
-													local res, err = red:rpush(idx3 .. ":list", kvid)
-													if not res or not tmp then
-														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
-														return
+												if red:sismember(tset, kvid) ~= 1 then
+													if tonumber(string.sub(dt, 0, -1)) ~= 1 then
+														local res, err = red:rpush(idx3 .. ":list", kvid)
+														local rset, eset = red:sadd(tset, kvid)
+														if not res or eset then
+														-- if not res or not tmp then
+															ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
+															return
+														else
+															ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
+														end
 													else
-														ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
+														local res, err = red:lpush(idx3 .. ":list", kvid)
+														local rset, eset = red:sadd(tset, kvid)
+														if not res or eset then
+														-- if not res or not tmp then
+															ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
+															return
+														else
+															ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
+														end
 													end
 												else
-													local res, err = red:lpush(idx3 .. ":list", kvid)
-													if not res or not tmp then
-														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
-														return
-													else
-														ngx.print(error000("Sucess to Callback RankBus Q+ >>" .. kvid .. '|' .. uk .. '|' .. idx3))
-													end
+													ngx.print(error005)
 												end
 											end
 										end
-									end
+									-- end
 								else
 									-- except the sc == '' or JSON.null or nil with dt < 10
 									-- ngx.exit(ngx.HTTP_BAD_REQUEST);

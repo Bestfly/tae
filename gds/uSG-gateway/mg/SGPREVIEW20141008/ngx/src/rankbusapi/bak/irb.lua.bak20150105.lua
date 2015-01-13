@@ -108,7 +108,6 @@ else
 								local sc = pcontent.sc
 								local idx1, idx2, idx3, idx4 = string.find(pcontent.qn, "([a-z]+):([a-z]+)")
 								if dt ~= nil and uk ~= nil and idx3 ~= nil and idx4 ~= nil and idx2 == 9 then
-									local kvid = idx4 .. ngx.md5(uk)
 									-- sc must NOT be nil
 									if sc ~= nil and sc ~= '' and sc ~= JSON.null then
 										if dt < 10 then
@@ -120,7 +119,7 @@ else
 											-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 											vb = pcontent.dt .. "/" .. idx4 .. "/" .. vb;
 											-- vb = idx4 .. "/" .. dt .. "/" .. vb;
-											-- local kvid = idx4 .. ngx.md5(uk);
+											local kvid = idx4 .. ngx.md5(uk);
 											local lit = string.sub(sc, 15, -1);
 											if lit ~= nil and lit ~= "" then
 												sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
@@ -286,7 +285,7 @@ else
 										if dt >= 10 then
 											-- Job failure to Call back RankBus Q+
 											-- dt 11,10,21,20,31,30
-											-- local kvid = idx4 .. ngx.md5(uk);
+											local kvid = idx4 .. ngx.md5(uk);
 											local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
 											if tmp ~= 0 then
 												-- vb update within the mission being done.
@@ -383,7 +382,7 @@ else
 															-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 															vb = pcontent[m].dt .. "/" .. idx4 .. "/" .. vb;
 															-- vb = idx4 .. "/" .. dt .. "/" .. vb;
-															-- local kvid = idx4 .. ngx.md5(uk);
+															local kvid = idx4 .. ngx.md5(uk);
 															local lit = string.sub(sc, 15, -1);
 															if lit ~= nil and lit ~= "" then
 																sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
@@ -571,7 +570,7 @@ else
 														if dt >= 10 then
 															-- Job failure to Call back RankBus Q+
 															-- dt 11,10,21,20,31,30
-															-- local kvid = idx4 .. ngx.md5(uk);
+															local kvid = idx4 .. ngx.md5(uk);
 															local tmp, trr = red:lrem(idx3 .. ":list", 0, kvid)
 															if tmp ~= 0 then
 																-- vb update within the mission being done.
