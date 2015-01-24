@@ -42,7 +42,8 @@ end
 local baseurl = "http://www.skyecho.com";
 -- local md5uri = "/cgishell/module/xml/air_other.pl?";
 local md5uri = "/cgishell/module/xml/Service_data.pl?"
-local Corp_ID = "MANGGO";
+-- local Corp_ID = "MANGGO";
+local Corp_ID = "SZX899";
 local md5key = "D%d3L8#F";
 -- FDNEWD  & CLSAGO
 -- local args = ("Air_date=2014.06.30&Airline=CZ&Arrive=CSX&Corp_ID=%s&Depart=CAN&Type=FDBLKD"):format(Corp_ID)
@@ -94,7 +95,7 @@ for i = 1, reslen do
 	resjson = resjson .. respbody[i]
 end
 print(resjson)
---[[
+
 local wname = "/data/logs/rholog.txt"
 local wfile = io.open(wname, "a+");
 wfile:write(os.date());
@@ -102,4 +103,4 @@ wfile:write("\r\n---------------------\r\n");
 wfile:write(resjson);
 wfile:write("\r\n---------------------\r\n");
 io.close(wfile);
---]]
+

@@ -78,7 +78,7 @@ if ngx.var.request_method == "GET" then
 				local task = {};
 				local check = false;
 				local resnum = 0;
-				if tonumber(ngx.var.num) ~= 0 then
+				if tonumber(ngx.var.num) ~= nil then
 					for n = 1, ngx.var.num do
 						local res, err = red:lpop(ngx.var.que .. ":list")
 						if type(res) ~= "string" then
@@ -129,16 +129,17 @@ if ngx.var.request_method == "GET" then
 						ngx.print(error004)
 					end
 				else
-					local r, e = red:hkeys("elg:vals:" .. ngx.var.que)
+					local r, e = red:hkeys(ngx.var.que .. ":vals:" .. ngx.var.num)
 					if not r then
 						ngx.print(error003("failed to get kvid from Redis: ", e))
 						return
 					else
 						if type(r) == "table" then
 							for n = 1, table.getn(r) do
-								res, err = memc:get(ngx.var.que .. r[n])
+								res, err = memc:get(ngx.var.num .. r[n])
 								if res ~= nil then
-									task[n] = string.sub(res, 33, -1)
+									-- task[n] = string.sub(res, 33, -1)
+									task[n] = res;
 									check = true;
 									resnum = resnum + 1;
 								end

@@ -228,7 +228,8 @@ else
 												-- dt 12
 												local vb = pcontent.vb
 												local sortkey = ngx.md5(uk);
-												local tkey = "elg:vals:" .. idx3;
+												-- local tkey = "elg:vals:" .. idx3;
+												local tkey = idx3 .. ":vals:" .. idx4;
 												-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 												vb = dt .. "/" .. idx4 .. "/" .. vb;
 												-- vb = idx4 .. "/" .. dt .. "/" .. vb;

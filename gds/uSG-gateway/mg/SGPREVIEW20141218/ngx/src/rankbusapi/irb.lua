@@ -32,6 +32,7 @@ end
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#VB and SC updated within your mission being done"});
 local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#Call back RankBus Q+ with SC"});
 local error007 = JSON.encode({ ["resultCode"] = 7, ["description"] = "error007#RankBus Server have NOT receieved your POST data"});
+local error008 = JSON.encode({ ["resultCode"] = 8, ["description"] = "error008#VB has been replaced but NOT add Mission List"});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -182,7 +183,7 @@ else
 															end
 														end
 													else
-														ngx.print(error005)
+														ngx.print(error008)
 													end
 												end
 											else
@@ -232,11 +233,12 @@ else
 										-- dt 12
 										local vb = pcontent.vb
 										local sortkey = md5uk;
-										local tkey = "elg:vals:" .. idx3;
+										-- local tkey = "elg:vals:" .. idx3;
+										local tkey = idx3 .. ":vals:" .. idx4;
 										-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 										vb = dt .. "/" .. idx4 .. "/" .. vb;
 										-- vb = idx4 .. "/" .. dt .. "/" .. vb;
-										local kvid = idx3 .. sortkey;
+										local kvid = idx4 .. sortkey;
 										local lit = string.sub(sc, 15, -1);
 										if lit ~= nil and lit ~= "" then
 											sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
