@@ -24,11 +24,12 @@ function error000 (mes)
 end
 local error001 = JSON.encode({ ["resultCode"] = 1, ["description"] = "error001#unKnow dt#Content"});
 local error002 = JSON.encode({ ["resultCode"] = 2, ["description"] = "error002#Service unSupported now."});
-local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "Get task from Queues is no result"});
+local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#Get task from Queues is no result"});
 function error003 (mes)
 	local res = JSON.encode({ ["resultCode"] = 3, ["description"] = mes});
 	return res
 end
+local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "[]"});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -129,31 +130,58 @@ if ngx.var.request_method == "GET" then
 						ngx.print(error004)
 					end
 				else
-					local r, e = red:hkeys(ngx.var.que .. ":vals:" .. ngx.var.num)
-					if not r then
-						ngx.print(error003("failed to get kvid from Redis: ", e))
-						return
+					local checknil = false;
+					local respbody = {};
+				    for key, val in pairs(parg) do
+						if key ~= nil and string.len(key) ~= 0 then
+							local res, err = memc:get(ngx.var.num .. ngx.md5(key))
+							if res ~= nil then
+								-- task[n] = string.sub(res, 33, -1)
+								task[key] = res;
+								check = true;
+								resnum = resnum + 1;
+							end
+							checknil = true;
+						end
+					end
+					if checknil ~= false then
+						if check == true then
+							local result = {};
+							result["resultCode"] = 0;
+							result["tasknumber"] = resnum;
+							result["taskQueues"] = task;
+							ngx.print(JSON.encode(result))
+							-- ngx.print(JSON.encode(respbody))
+						else
+							ngx.print(error005)
+						end
 					else
-						if type(r) == "table" then
-							for n = 1, table.getn(r) do
-								res, err = memc:get(ngx.var.num .. r[n])
-								if res ~= nil then
-									-- task[n] = string.sub(res, 33, -1)
-									task[n] = res;
-									check = true;
-									resnum = resnum + 1;
+						local r, e = red:hkeys(ngx.var.que .. ":vals:" .. ngx.var.num)
+						if not r then
+							ngx.print(error003("failed to get kvid from Redis: ", e))
+							return
+						else
+							if type(r) == "table" then
+								for n = 1, table.getn(r) do
+									res, err = memc:get(ngx.var.num .. r[n])
+									if res ~= nil then
+										-- task[n] = string.sub(res, 33, -1)
+										task[n] = res;
+										check = true;
+										resnum = resnum + 1;
+									end
 								end
 							end
 						end
-					end
-					if check == true then
-						local result = {};
-						result["resultCode"] = 0;
-						result["tasknumber"] = resnum;
-						result["taskQueues"] = task;
-						ngx.print(JSON.encode(result))
-					else
-						ngx.print(error001)
+						if check == true then
+							local result = {};
+							result["resultCode"] = 0;
+							result["tasknumber"] = resnum;
+							result["taskQueues"] = task;
+							ngx.print(JSON.encode(result))
+						else
+							ngx.print(error005)
+						end
 					end
 				end
 			end

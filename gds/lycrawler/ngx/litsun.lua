@@ -6,12 +6,42 @@
 -- little sun corp interface test program of extension for bestfly service
 local socket = require 'socket'
 local http = require 'socket.http'
--- local JSON = require 'cjson'
+local JSON = require 'cjson'
 local md5 = require 'md5'
+local iconv = require 'iconv'
 -- local zlib = require 'zlib'
 -- local base64 = require 'base64'
 -- local crypto = require 'crypto'
 -- local client = require 'soap.client'
+if string.find(_VERSION, "5.2") then
+	table.getn = function (t)
+		if t.n then
+            return t.n
+        else
+            local n = 0
+            for i in pairs(t) do
+                if type(i) == "number" then
+                    n = math.max(n, i)
+                end
+            end
+        return n
+        end
+    end
+end
+function createIconv(from,to,text)
+	local cd = iconv.new(to .. "//TRANSLIT", from)
+	local ostr, err = cd:iconv(text)
+	if err == iconv.ERROR_INCOMPLETE then
+		return "ERROR: Incomplete input."
+		elseif err == iconv.ERROR_INVALID then
+			return "ERROR: Invalid input."
+			elseif err == iconv.ERROR_NO_MEMORY then
+				return "ERROR: Failed to allocate memory."
+				elseif err == iconv.ERROR_UNKNOWN then
+					return "ERROR: There was an unknown error."
+				end
+		return ostr
+end
 function urlencode(s) return s and (s:gsub("[^a-zA-Z0-9.~_-]", function (c) return string.format("%%%02x", c:byte()); end)); end
 function urldecode(s) return s and (s:gsub("%%(%x%x)", function (c) return char(tonumber(c,16)); end)); end
 local function _formencodepart(s)
@@ -38,18 +68,18 @@ function formencode(form)
  	end
  	return table.concat(result, "&");
 end
-
 local baseurl = "http://www.skyecho.com";
 -- local md5uri = "/cgishell/module/xml/air_other.pl?";
 local md5uri = "/cgishell/module/xml/Service_data.pl?"
 -- local Corp_ID = "MANGGO";
 local Corp_ID = "SZX899";
 local md5key = "D%d3L8#F";
--- FDNEWD  & CLSAGO
+-- FDNEWD-FD  & CLSAGO-NFD
+-- Type_ID 对应两个业务／FD的每30分钟取一次，NFD的每10分钟取一次
 -- local args = ("Air_date=2014.06.30&Airline=CZ&Arrive=CSX&Corp_ID=%s&Depart=CAN&Type=FDBLKD"):format(Corp_ID)
 -- local args = ("Air_date=2014.12.31&Airline=CZ&Corp_ID=%s&Trip=SZXSHA&Type=FD"):format(Corp_ID)
 -- local args = ("Corp_ID=%s&STime=20141129135901&Type_ID=CLSAGO"):format(Corp_ID)
-local args = ("Corp_ID=%s&STime=&Type_ID=CLSAGO"):format(Corp_ID)
+local args = ("Corp_ID=%s&STime=&Type_ID=FDNEWD"):format(Corp_ID)
 print(args .. md5key)
 local sign = string.upper(md5.sumhexa(args .. md5key))
 args = args .. "&Sign=" .. sign
@@ -79,7 +109,7 @@ local body, code, headers, status = http.request {
 		-- ["Content-Length"] = string.len(request)
 	},
 	-- body = formdata,
-	-- source = ltn12.source.string(form_data);
+	-- source = ltn12.source.string(form_data),
 	-- source = ltn12.source.string(request),
 	sink = ltn12.sink.table(respbody)
 }
@@ -91,11 +121,14 @@ local resjson = "";
 local reslen = table.getn(respbody)
 print(reslen)
 for i = 1, reslen do
-	-- print(respbody[i])
+	print(respbody[i])
 	resjson = resjson .. respbody[i]
 end
+--[[
+-- 转码
+resjson = createIconv("utf-8","gbk",resjson)
 print(resjson)
-
+-- 写转码后的数据进入log文件
 local wname = "/data/logs/rholog.txt"
 local wfile = io.open(wname, "a+");
 wfile:write(os.date());
@@ -103,4 +136,4 @@ wfile:write("\r\n---------------------\r\n");
 wfile:write(resjson);
 wfile:write("\r\n---------------------\r\n");
 io.close(wfile);
-
+--]]
