@@ -6,11 +6,12 @@
 -- kvdb service of JuHang for HiGDS service
 -- load library
 local JSON = require 'cjson'
-package.path = "/data/usgcore/ngx/lib/?.lua;";
+local base64 = require 'base64'
+package.path = "/mnt/data/usgcore/ngx/lib/?.lua;";
 local redis = require "resty.redis"
 local http = require "resty.http"
 local memcached = require "resty.memcached"
--- local deflate = require "compress.deflatelua"
+local deflate = require "compress.deflatelua"
 -- originality
 function error000 (mes)
 	local res = JSON.encode({ ["resultCode"] = 0, ["description"] = mes});
@@ -60,13 +61,13 @@ end
 local appidc01 = "142ffb5bfa1-cn-jijilu-dg-c01"
 local appidc02 = "142ffb5bfa1-cn-jijilu-dg-c02"
 local verifykey = "5P826n55x3LkwK5k88S5b3XS4h30bTRg";
-if ngx.var.request_method == "GET" then
+if ngx.var.request_method ~= "POST" then
 	-- ngx.exit(ngx.HTTP_FORBIDDEN);
 	local harg = ngx.req.get_headers();
 	local parg = ngx.req.get_uri_args();
 	-- ngx.say(type(parg))--table
 	-- ngx.say(parg[1],parg[2])--nil
-	if harg["Auth-Timestamp"] ~= nil and harg["Auth-Signature"] ~= nil then
+	if harg["Auth-Timestamp"] ~= nil and harg["Auth-Signature"] ~= nil and harg["Auth-Appid"] ~= nil and harg["sn"] ~= nil then
 		if math.abs(harg["Auth-Timestamp"] - os.time()) >= 3600 and (harg["Auth-Appid"] ~= appidc01 or harg["Auth-Appid"] ~= appidc02) then
 			ngx.exit(ngx.HTTP_UNAUTHORIZED);
 		else
@@ -86,7 +87,7 @@ if ngx.var.request_method == "GET" then
 			        end
 					--]]
 					-- intl/ctrip/20131130.20131230/bjslon
-					local idx1, idx2, idx3, idx4, idx5, idx6, idx7 = string.find(key, "([a-z]+)\/([a-z]+)\/([0-9]+)\.([0-9]+)\/([a-z]+)")
+					local idx1, idx2, idx3, idx4, idx5, idx6, idx7 = string.find(key, '([a-z]+)/([a-z]+)/([0-9]+).([0-9]+)/([a-z]+)');
 					if idx2 == 35 and idx3 ~= nil and idx4 ~= nil and idx5 ~= nil and idx6 ~= nil and idx7 ~= nil then
 						--[[
 						local tkey = "rms/renwu/" .. string.sub(key, 1, 19)
@@ -94,16 +95,12 @@ if ngx.var.request_method == "GET" then
 						local hid = string.sub(key, 21, -1)
 						hid = string.gsub(hid, "/", "")
 						--]]
-						local tkey = "";
-						if harg["Auth-Appid"] ~= appidc02 then
-							tkey = "rms:renwu:" .. idx3 .. ":" .. idx4 .. ":" .. idx5
-						else
-							tkey = "rms:price:" .. idx3 .. ":" .. idx4 .. ":" .. idx5
-						end
+						local tkey = harg["sn"] .. ":" .. idx3 .. ":" .. idx4 .. ":" .. idx5
 						local hid = idx6 .. idx7
+						-- ngx.print(tkey,hid)
 						local res, err = red:hget(tkey, hid)
 						if not res then
-							ngx.say(error003("failed to get vb->>" .. tkey .. '|' .. hid))
+							ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
 							return
 						else
 							respbody[key] = res
@@ -132,7 +129,7 @@ else
 	if not pcontent then
 		ngx.exit(ngx.HTTP_BAD_REQUEST);
 	else
-		if harg["Auth-Timestamp"] ~= nil and harg["Auth-Signature"] ~= nil then
+		if harg["Auth-Timestamp"] ~= nil and harg["Auth-Signature"] ~= nil and harg["Auth-Appid"] ~= nil then
 			-- if math.abs(harg["Auth-Timestamp"] - os.time()) >= 3600 then
 			if math.abs(harg["Auth-Timestamp"] - os.time()) >= 3600 and (harg["Auth-Appid"] ~= appidc01 or harg["Auth-Appid"] ~= appidc02) then
 				ngx.exit(ngx.HTTP_UNAUTHORIZED);
@@ -147,11 +144,11 @@ else
 						if pcontent.dt == 10 then
 							-- rms:renwu:domc/ctrip/20141010.00000000/canbjs
 							local tkey = pcontent.sn .. ":" .. pcontent.uk
-							local idx1, idx2, idx3, idx4, idx5, idx6, idx7 = string.find(tkey, "[a-z]+\:[a-z]+\:([a-z]+)\/([a-z]+)\/([0-9]+)\.([0-9]+)\/([a-z]+)")
-							if idx2 == 45 and string.len(idx5) == 8 and string.len(idx6) == 8 and string.len(idx7) == 6 then
-								-- ngx.print(idx3,idx4,idx5)
-								tkey = pcontent.sn .. ":" .. idx3 .. ":" .. idx4 .. ":" .. idx5
-								local hid = idx6 .. idx7
+							local idx1, idx2, idx3, idx4, idx5, idx6, idx7, idx8, idx9 = string.find(tkey, '([a-z]+):([a-z]+):([a-z]+)/([a-z]+)/([0-9]+).([0-9]+)/([a-z]+)');
+							-- ngx.print(idx3,idx7,idx8,idx9)
+							if idx2 == 45 and string.len(idx7) == 8 and string.len(idx8) == 8 and string.len(idx9) == 6 then
+								tkey = pcontent.sn .. ":" .. idx5 .. ":" .. idx6 .. ":" .. idx7
+								local hid = idx8 .. idx9
 								local res, err = red:hset(tkey, hid, pcontent.vb)
 								if not res then
 									ngx.print(error003("failed to save vb->>" .. tkey .. '|' .. hid .. '|' .. pcontent.vb))

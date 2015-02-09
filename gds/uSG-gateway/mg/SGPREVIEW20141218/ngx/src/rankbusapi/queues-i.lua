@@ -6,7 +6,7 @@
 -- Queues service of RankBus for TAE service
 -- load library
 local JSON = require 'cjson'
-package.path = "/data/usgcore/ngx/lib/?.lua;";
+package.path = "/mnt/data/usgcore/ngx/lib/?.lua;";
 local redis = require "resty.redis"
 local http = require "resty.http"
 -- local memcached = require "resty.memcached"

@@ -5,7 +5,8 @@
 -- begin of the idea : http://rhomobi.com/topics/
 -- Queues service of RankBus for TAE service
 -- load library
-local JSON = require("cjson");
+local JSON = require 'cjson'
+package.path = "/mnt/data/usgcore/ngx/lib/?.lua;";
 local redis = require "resty.redis"
 local http = require "resty.http"
 -- originality

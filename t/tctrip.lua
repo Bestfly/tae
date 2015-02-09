@@ -12,6 +12,21 @@ local md5 = require 'md5'
 local base64 = require 'base64'
 -- local crypto = require 'crypto'
 -- local client = require 'soap.client'
+if string.find(_VERSION, "5.2") then
+	table.getn = function (t)
+		if t.n then
+            return t.n
+        else
+            local n = 0
+            for i in pairs(t) do
+                if type(i) == "number" then
+                    n = math.max(n, i)
+                end
+            end
+        return n
+        end
+    end
+end
 function urlencode(s) return s and (s:gsub("[^a-zA-Z0-9.~_-]", function (c) return string.format("%%%02x", c:byte()); end)); end
 function urldecode(s) return s and (s:gsub("%%(%x%x)", function (c) return char(tonumber(c,16)); end)); end
 local function _formencodepart(s)
@@ -42,13 +57,13 @@ end
 -- http://yougola.sinaapp.com/checker/?intl/ctrip/20131130.20131230/bjslon
 local sinaapp = false;
 -- local baseurl = "http://yougola.sinaapp.com/";
-local baseurl = "http://api.bestfly.cn:3000/";
+local baseurl = "http://api.cloudavh.com/";
 -- local md5uri = "taei?intl/ctrip/20131130.20131230/bjslon";
 -- &intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&
--- local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
-local md5uri = "tae"
+local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
+-- local md5uri = "tae"
 local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRg";
-local appid = "142ffb5bfa1-cn-jijilu-dg-c01";
+local appid = "142ffb5bfa1-cn-jijilu-dg-c02";
 local timestamp = os.time() + 1200;
 print(timestamp);
 print(md5.sumhexa(sinakey .. timestamp))
@@ -75,6 +90,7 @@ local body, code, headers, status = http.request {
 		-- ["SOAPAction"] = "http://ctrip.com/Request",
 		["Cache-Control"] = "no-cache",
 		["Auth-Appid"] = appid,
+		["Sn"] = "rms:renwu",
 		["Auth-Timestamp"] = timestamp,
 		["Auth-Signature"] = md5.sumhexa(sinakey .. timestamp .. appid),
 		-- ["Accept-Encoding"] = "gzip",
@@ -114,7 +130,7 @@ local respbody = {};
 -- local request = md5.sumhexa(resjson) .. timestamp;
 -- local request = '{"k":"domc/ctrip/20141010.20141011/canlax","v":"123456ww"}'
 local request = ([=[{
-    "vb": "H4sIAAAAAAAAZ5iksQY7xGuMrcddntAkchVd4K0WO2iZeHpQ5KQMwCSF4q7fmYd8",
+    "vb": "AA1111114sIAAAAAAAAZ5iksQY7xGuMrcddntAkchVd4K0WO2iZeHpQ5KQMwCSF4q7fmYd8",
     "sn": "rms:renwu",
     "dt": %s,
     "uk": "domc/ctrip/20141010.00000000/canbjs"

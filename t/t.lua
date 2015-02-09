@@ -15,10 +15,12 @@ local http = require 'socket.http'
 local md5 = require 'md5'
 -- local dns = require 'socket.dns'
 local JSON = require 'cjson'
+--[[
 print(socket._VERSION)
 for k,v in pairs(socket._M) do
 	print(k,v)
 end
+--]]
 local t = socket.gettime()
 local k,v = socket.dns.toip("www.qiyou365.com")
 print(k)
