@@ -17,12 +17,14 @@ function error000 (mes)
 	local res = JSON.encode({ ["resultCode"] = 0, ["description"] = mes});
 	return res
 end
-local error001 = JSON.encode({ ["resultCode"] = 1, ["description"] = "error001#unKnow dt#Content"});
+local error001 = JSON.encode({ ["resultCode"] = 1, ["description"] = "error001#unKnowed dt/sn#Content"});
 local error002 = JSON.encode({ ["resultCode"] = 2, ["description"] = "error002#Service unSupported now."});
 function error003 (mes)
 	local res = JSON.encode({ ["resultCode"] = 3, ["description"] = mes});
 	return res
 end
+local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#SC must NOT be Null whhen dt == 12"});
+local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#unSupported uk & sn[1]"});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -140,7 +142,7 @@ else
 				else
 					-- ngx.print(pcontent);
 					pcontent = JSON.decode(pcontent)
-					if pcontent.dt ~= nil and pcontent.uk ~= nil then
+					if pcontent.dt ~= nil and pcontent.uk ~= nil and pcontent.sn ~= nil then
 						if pcontent.dt == 10 then
 							-- rms:renwu:domc/ctrip/20141010.00000000/canbjs
 							local tkey = pcontent.sn .. ":" .. pcontent.uk
@@ -161,7 +163,25 @@ else
 							end
 						else
 							if pcontent.dt == 11 then
-								ngx.print(error002)
+								if pcontent.sc ~= nil then
+									-- ngx.print(error002)
+									local tkey = pcontent.sn .. ":" .. pcontent.uk
+									local idx1, idx2, idx3, idx4, idx5 = string.find(tkey, '([a-z]+):([a-z]+):(.+)');
+									-- sn[1] = 3 & uk > 3
+									if string.len(idx3) == 3 and string.len(idx5) > 3 then
+										local res, err = red:zadd(pcontent.sn, tonumber(pcontent.sc), pcontent.uk)
+										if not res then
+											ngx.print(error003("failed to save vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
+											return
+										else
+											ngx.print(error000("Sucess to save vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
+										end
+									else
+										ngx.print(error005)
+									end
+								else
+									ngx.print(error004)
+								end
 							else
 								ngx.print(error001)
 							end

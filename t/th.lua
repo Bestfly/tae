@@ -63,3 +63,11 @@ print(idx4)
 print(idx5)
 print(idx6)
 print(idx7)
+
+a = "rms:renwu:fejwifjewoifjweqfojqwefl:few3jfeof"
+local idx1, idx2, idx3, idx4, idx5 = string.find(a, '([a-z]+):([a-z]+):(.+)')
+print(idx1)
+print(idx2)
+print(idx3)
+print(idx4)
+print(idx5)
