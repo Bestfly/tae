@@ -60,8 +60,9 @@ local sinaapp = false;
 local baseurl = "http://api.cloudavh.com/";
 -- local md5uri = "taei?intl/ctrip/20131130.20131230/bjslon";
 -- &intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&
-local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
+-- local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
 -- local md5uri = "tae"
+local md5uri = "tae?rms:renwu"
 local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRg";
 local appid = "142ffb5bfa1-cn-jijilu-dg-c02";
 local timestamp = os.time() + 1200;
@@ -90,7 +91,8 @@ local body, code, headers, status = http.request {
 		-- ["SOAPAction"] = "http://ctrip.com/Request",
 		["Cache-Control"] = "no-cache",
 		["Auth-Appid"] = appid,
-		["Sn"] = "qiy:abcde",
+		["If-Match"] = 'sort',
+		["Sn"] = "rms:renwu",
 		["Auth-Timestamp"] = timestamp,
 		["Auth-Signature"] = md5.sumhexa(sinakey .. timestamp .. appid),
 		-- ["Accept-Encoding"] = "gzip",
@@ -133,8 +135,8 @@ local request = ([=[{
     "vb": "AA1111114sIAAAAAAAAZ5iksQY7xGuMrcddntAkchVd4K0WO2iZeHpQ5KQMwCSF4q7fmYd8",
     "sn": "rms:renwu",
     "dt": %s,
-    "uk": "domc/ctrip/20141010.00000000/canbjs",
-	"sc": 700
+    "uk": "domc/ctrip/20141010.00000000/canpek",
+	"sc": 610
 }]=]):format(11)
 print(request);
 print("-------开始发送POST请求-------")

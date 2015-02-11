@@ -109,8 +109,8 @@ if ngx.var.request_method ~= "POST" then
 									return
 								else
 									respbody[key] = res
+									checknil = true
 								end
-								checknil = true;
 							end
 						end
 						if checknil ~= false then
@@ -123,14 +123,15 @@ if ngx.var.request_method ~= "POST" then
 						local checknil = false;
 						local respbody = {};
 					    for key, val in pairs(parg) do
-							local res, err = red:zrange(key, 0, 1) -- ZRANGE myzset 0 -1
+							local res, err = red:zrange(key, 0, 1, "WITHSCORES") -- ZRANGE myzset 0 -1
 							if not res then
 								ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
 								return
 							else
+								-- ngx.say(res[1])
 								respbody[res[1]] = res[2]
+								checknil = true
 							end
-							checknil = true;
 						end
 						if checknil ~= false then
 							ngx.print(JSON.encode(respbody))
