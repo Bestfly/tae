@@ -134,7 +134,7 @@ if ngx.var.request_method == "GET" then
 					local respbody = {};
 				    for key, val in pairs(parg) do
 						if key ~= nil and string.len(key) ~= 0 then
-							local res, err = memc:get(ngx.var.num .. ngx.md5(key))
+							local res, err = memc:get(ngx.var.que .. ngx.var.num .. ngx.md5(key))
 							if res ~= nil then
 								-- task[n] = string.sub(res, 33, -1)
 								task[key] = res;
@@ -156,6 +156,7 @@ if ngx.var.request_method == "GET" then
 							ngx.print(error005)
 						end
 					else
+						-- 上面是根据指定的uk（支持批量）返回，下面是不指定uk情况下，穷举qn[1]:qn[2]的uk全面返回
 						local r, e = red:hkeys(ngx.var.que .. ":vals:" .. ngx.var.num)
 						if not r then
 							ngx.print(error003("failed to get kvid from Redis: ", e))
@@ -163,7 +164,7 @@ if ngx.var.request_method == "GET" then
 						else
 							if type(r) == "table" then
 								for n = 1, table.getn(r) do
-									res, err = memc:get(ngx.var.num .. r[n])
+									res, err = memc:get(ngx.var.que .. ngx.var.num .. r[n])
 									if res ~= nil then
 										-- task[n] = string.sub(res, 33, -1)
 										task[n] = res;

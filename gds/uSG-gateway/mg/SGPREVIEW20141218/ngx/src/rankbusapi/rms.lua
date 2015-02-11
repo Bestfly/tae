@@ -25,6 +25,7 @@ function error003 (mes)
 end
 local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#SC must NOT be Null whhen dt == 12"});
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#unSupported uk & sn[1]"});
+local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#unSupported If-Match, Please input http header 'If-Match'"});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -76,45 +77,70 @@ if ngx.var.request_method ~= "POST" then
 			if ngx.md5(verifykey .. harg["Auth-Timestamp"] .. harg["Auth-Appid"]) ~= harg["Auth-Signature"] then
 				ngx.exit(ngx.HTTP_UNAUTHORIZED);
 			else
-				local checknil = false;
-				local respbody = {};
-			    for key, val in pairs(parg) do
-					-- ngx.say(type(val))--boolean
-					-- domc/ctrip/20141010.00000000/canbjs: true
-					--[[
-			        if type(val) == "table" then
-			            ngx.say(key, ": ", table.concat(val, ", "))
-			        else
-			            ngx.say(key, ": ", val)
-			        end
-					--]]
-					-- intl/ctrip/20131130.20131230/bjslon
-					local idx1, idx2, idx3, idx4, idx5, idx6, idx7 = string.find(key, '([a-z]+)/([a-z]+)/([0-9]+).([0-9]+)/([a-z]+)');
-					if idx2 == 35 and idx3 ~= nil and idx4 ~= nil and idx5 ~= nil and idx6 ~= nil and idx7 ~= nil then
-						--[[
-						local tkey = "rms/renwu/" .. string.sub(key, 1, 19)
-						tkey = string.gsub(tkey, "/", ":")
-						local hid = string.sub(key, 21, -1)
-						hid = string.gsub(hid, "/", "")
-						--]]
-						local tkey = harg["sn"] .. ":" .. idx3 .. ":" .. idx4 .. ":" .. idx5
-						local hid = idx6 .. idx7
-						-- ngx.print(tkey,hid)
-						local res, err = red:hget(tkey, hid)
-						if not res then
-							ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
-							return
-						else
-							respbody[key] = res
+				if harg["If-Match"] ~= nil then
+					if harg["If-Match"] == 'unsort' then
+						local checknil = false;
+						local respbody = {};
+					    for key, val in pairs(parg) do
+							-- ngx.say(type(val))--boolean
+							-- domc/ctrip/20141010.00000000/canbjs: true
+							--[[
+					        if type(val) == "table" then
+					            ngx.say(key, ": ", table.concat(val, ", "))
+					        else
+					            ngx.say(key, ": ", val)
+					        end
+							--]]
+							-- intl/ctrip/20131130.20131230/bjslon
+							local idx1, idx2, idx3, idx4, idx5, idx6, idx7 = string.find(key, '([a-z]+)/([a-z]+)/([0-9]+).([0-9]+)/([a-z]+)');
+							if idx2 == 35 and idx3 ~= nil and idx4 ~= nil and idx5 ~= nil and idx6 ~= nil and idx7 ~= nil then
+								--[[
+								local tkey = "rms/renwu/" .. string.sub(key, 1, 19)
+								tkey = string.gsub(tkey, "/", ":")
+								local hid = string.sub(key, 21, -1)
+								hid = string.gsub(hid, "/", "")
+								--]]
+								local tkey = harg["sn"] .. ":" .. idx3 .. ":" .. idx4 .. ":" .. idx5
+								local hid = idx6 .. idx7
+								-- ngx.print(tkey,hid)
+								local res, err = red:hget(tkey, hid)
+								if not res then
+									ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
+									return
+								else
+									respbody[key] = res
+								end
+								checknil = true;
+							end
 						end
-						checknil = true;
+						if checknil ~= false then
+							ngx.print(JSON.encode(respbody))
+						else
+							ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
+							-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+						end
+					elseif harg["If-Match"] == 'sort' then
+						local checknil = false;
+						local respbody = {};
+					    for key, val in pairs(parg) do
+							local res, err = red:zrange(key, 0, 1) -- ZRANGE myzset 0 -1
+							if not res then
+								ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+								return
+							else
+								respbody[res[1]] = res[2]
+							end
+							checknil = true;
+						end
+						if checknil ~= false then
+							ngx.print(JSON.encode(respbody))
+						else
+							ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
+							-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+						end
 					end
-				end
-				if checknil ~= false then
-					ngx.print(JSON.encode(respbody))
 				else
-					ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
-					-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+					ngx.print(error006)
 				end
 			end
 		end

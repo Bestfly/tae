@@ -111,7 +111,9 @@ else
 						local idx1, idx2, idx3, idx4 = string.find(pcontent.qn, "([a-z]+):([a-z]+)")
 						if dt ~= nil and uk ~= nil and idx3 ~= nil and idx4 ~= nil and idx2 == 9 then
 							local md5uk = ngx.md5(uk)
-							local kvid = idx4 .. md5uk
+							-- local kvid = idx4 .. md5uk
+							-- kvid from 37 to 40 length
+							local kvid = idx3 .. idx4 .. md5uk
 							local vb = pcontent.vb
 							local md5vb = ngx.md5(vb)
 							local share = string.sub(ngx.encode_base64(uk), 1, 3)
@@ -238,7 +240,7 @@ else
 										-- local tqdata = rightstr .. "/" .. otype .. "/" .. qbody
 										vb = dt .. "/" .. idx4 .. "/" .. vb;
 										-- vb = idx4 .. "/" .. dt .. "/" .. vb;
-										local kvid = idx4 .. sortkey;
+										-- local kvid = idx4 .. sortkey;
 										local lit = string.sub(sc, 15, -1);
 										if lit ~= nil and lit ~= "" then
 											sc = os.time({year=string.sub(sc, 1, 4), month=tonumber(string.sub(sc, 5, 6)), day=tonumber(string.sub(sc, 7, 8)), hour=tonumber(string.sub(sc, 9, 10)), min=tonumber(string.sub(sc, 11, 12)), sec=tonumber(string.sub(sc, 13, 14))})
