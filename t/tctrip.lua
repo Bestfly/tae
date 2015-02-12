@@ -61,6 +61,7 @@ local baseurl = "http://api.cloudavh.com/";
 -- local md5uri = "taei?intl/ctrip/20131130.20131230/bjslon";
 -- &intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&
 local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&intl/ctrip/20141010.00000000/canlax&domc/ctrip/20141010.00000000/cansha&";
+-- local md5uri = "tae?domc/ctrip/20141010.00000000/canbjs&"
 -- local md5uri = "tae"
 local sinakey = "5P826n55x3LkwK5k88S5b3XS4h30bTRg";
 local appid = "142ffb5bfa1-cn-jijilu-dg-c02";

@@ -26,6 +26,7 @@ end
 local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#SC must NOT be Null whhen dt == 12"});
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#unSupported uk & sn[1]"});
 local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#unSupported If-Match, Please input http header 'If-Match'"});
+local error007 = JSON.encode({ ["resultCode"] = 7, ["description"] = "error007#Nothing need to be done for VB('')"});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -47,19 +48,18 @@ if not r then
     ngx.print(error003("failed to authenticate: ", e))
     return
 end
---[[
 local memc, err = memcached:new()
 if not memc then
-    ngx.say("failed to instantiate memc: ", err)
+    -- ngx.say("failed to instantiate memc: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate memc: ", err)
     return
 end
-memc:set_timeout(1000) -- 1 sec
-local ok, err = memc:connect("127.0.0.1", 1978)
+memc:set_timeout(3000) -- 3 sec
+local ok, err = memc:connect("127.0.0.1", 61978)
 if not ok then
-    ngx.say("failed to connect: ", err)
+    ngx.print(error003("failed to connect: ", err))
     return
 end
---]]
 -- end of nosql init.
 local appidc01 = "142ffb5bfa1-cn-jijilu-dg-c01"
 local appidc02 = "142ffb5bfa1-cn-jijilu-dg-c02"
@@ -81,6 +81,7 @@ if ngx.var.request_method ~= "POST" then
 					if harg["If-Match"] == 'unsort' then
 						local checknil = false;
 						local respbody = {};
+						local resnum = 0;
 					    for key, val in pairs(parg) do
 							-- ngx.say(type(val))--boolean
 							-- domc/ctrip/20141010.00000000/canbjs: true
@@ -110,11 +111,17 @@ if ngx.var.request_method ~= "POST" then
 								else
 									respbody[key] = res
 									checknil = true
+									resnum = resnum + 1
 								end
 							end
 						end
 						if checknil ~= false then
-							ngx.print(JSON.encode(respbody))
+							-- ngx.print(JSON.encode(respbody))
+							local result = {};
+							result["resultCode"] = 0;
+							result["dataNumber"] = resnum;
+							result["dataDetail"] = respbody;
+							ngx.print(JSON.encode(result))
 						else
 							ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
 							-- ngx.exit(ngx.HTTP_BAD_REQUEST);
@@ -122,19 +129,42 @@ if ngx.var.request_method ~= "POST" then
 					elseif harg["If-Match"] == 'sort' then
 						local checknil = false;
 						local respbody = {};
+						local resnum = 0;
 					    for key, val in pairs(parg) do
 							local res, err = red:zrange(key, 0, 1, "WITHSCORES") -- ZRANGE myzset 0 -1
 							if not res then
 								ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
 								return
 							else
-								-- ngx.say(res[1])
-								respbody[res[1]] = res[2]
-								checknil = true
+								if table.getn(res) ~= 0 then
+									respbody[res[1]] = res[2]
+									-- pcontent.sn .. ":" .. pcontent.uk
+									local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[1])
+									local resultvb = memc:get(kvid)
+									if not resultvb then
+										-- respbody[res[1]] = res[2]
+										ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
+										-- ngx.print(error003("failed to get originality data from kvdb: ", kvid, err))
+										-- return
+										-- 取不到值也不要退出，避免过去的vb是空或者''
+									else
+									-- ngx.say(res[1])
+										respbody["oriValue"] = resultvb
+									end
+									checknil = true
+									resnum = resnum + 1
+								else
+									checknil = true
+								end
 							end
 						end
 						if checknil ~= false then
-							ngx.print(JSON.encode(respbody))
+							-- ngx.print(JSON.encode(respbody))
+							local result = {};
+							result["resultCode"] = 0;
+							result["dataNumber"] = resnum;
+							result["dataDetail"] = respbody;
+							ngx.print(JSON.encode(result))
 						else
 							ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
 							-- ngx.exit(ngx.HTTP_BAD_REQUEST);
@@ -193,15 +223,29 @@ else
 								if pcontent.sc ~= nil then
 									-- ngx.print(error002)
 									local tkey = pcontent.sn .. ":" .. pcontent.uk
-									local idx1, idx2, idx3, idx4, idx5 = string.find(tkey, '([a-z]+):([a-z]+):(.+)');
+									local idx1, idx2, idx3, idx4, idx5 = string.find(tkey, '([a-z]+):([0-9a-zA-Z]+):(.+)');
 									-- sn[1] = 3 & uk > 3
 									if string.len(idx3) == 3 and string.len(idx5) > 3 then
 										local res, err = red:zadd(pcontent.sn, tonumber(pcontent.sc), pcontent.uk)
 										if not res then
-											ngx.print(error003("failed to save vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
+											ngx.print(error003("failed to add sort vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
 											return
 										else
-											ngx.print(error000("Sucess to save vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
+											if pcontent.vb ~= nil then
+												if pcontent.vb ~= "" then
+													local ok = memc:set(idx3 .. ngx.md5(tkey), pcontent.vb)
+													if not ok then
+														ngx.print(error003("failed to save vb->>" .. idx3 .. tkey .. '|' .. pcontent.uk .. '|' .. pcontent.vb))
+														return
+													else
+														ngx.print(error000("Sucess to save vb->>" .. idx3 .. tkey .. '|' .. pcontent.uk .. '|' .. pcontent.vb))
+													end
+												else
+													ngx.print(error007)
+												end
+											else
+												ngx.print(error000("Sucess to add sort vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
+											end
 										end
 									else
 										ngx.print(error005)

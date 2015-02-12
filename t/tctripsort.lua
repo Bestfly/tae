@@ -135,8 +135,8 @@ local request = ([=[{
     "vb": "AA1111114sIAAAAAAAAZ5iksQY7xGuMrcddntAkchVd4K0WO2iZeHpQ5KQMwCSF4q7fmYd8",
     "sn": "rms:renwu",
     "dt": %s,
-    "uk": "domc/ctrip/20141010.00000000/canpek",
-	"sc": 610
+    "uk": "domc/ctrip/20141010.00000000/cannyc",
+	"sc": 400
 }]=]):format(11)
 print(request);
 print("-------开始发送POST请求-------")
