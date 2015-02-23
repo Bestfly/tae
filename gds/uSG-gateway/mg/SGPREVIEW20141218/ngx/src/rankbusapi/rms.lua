@@ -27,6 +27,7 @@ local error004 = JSON.encode({ ["resultCode"] = 4, ["description"] = "error004#S
 local error005 = JSON.encode({ ["resultCode"] = 5, ["description"] = "error005#unSupported uk & sn[1]"});
 local error006 = JSON.encode({ ["resultCode"] = 6, ["description"] = "error006#unSupported If-Match, Please input http header 'If-Match'"});
 local error007 = JSON.encode({ ["resultCode"] = 7, ["description"] = "error007#Nothing need to be done for VB('')"});
+local error008 = JSON.encode({ ["resultCode"] = 8, ["description"] = "error008#Please check your header 'If-Match', it must be (number1,number2]."});
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -126,48 +127,108 @@ if ngx.var.request_method ~= "POST" then
 							ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
 							-- ngx.exit(ngx.HTTP_BAD_REQUEST);
 						end
-					elseif harg["If-Match"] == 'sort' then
-						local checknil = false;
-						local respbody = {};
-						local resnum = 0;
-					    for key, val in pairs(parg) do
-							local res, err = red:zrange(key, 0, 1, "WITHSCORES") -- ZRANGE myzset 0 -1
-							if not res then
-								ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
-								return
-							else
-								if table.getn(res) ~= 0 then
-									respbody[res[1]] = res[2]
-									-- pcontent.sn .. ":" .. pcontent.uk
-									local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[1])
-									local resultvb = memc:get(kvid)
-									if not resultvb then
-										-- respbody[res[1]] = res[2]
-										ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
-										-- ngx.print(error003("failed to get originality data from kvdb: ", kvid, err))
-										-- return
-										-- 取不到值也不要退出，避免过去的vb是空或者''
-									else
-									-- ngx.say(res[1])
-										respbody["oriValue"] = resultvb
-									end
-									checknil = true
-									resnum = resnum + 1
+					else
+						if harg["If-Match"] == 'sort' then
+							local checknil = false;
+							local respbody = {};
+							local resnum = 0;
+						    for key, val in pairs(parg) do
+								local res, err = red:zrange(key, 0, 0, "WITHSCORES") -- ZRANGE myzset 0 -1
+								if not res then
+									ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+									return
 								else
-									checknil = true
+									if table.getn(res) ~= 0 then
+										local i = 1;
+										-- ngx.say(table.getn(res),res[1],res[2],res[3],res[4])
+										while i < table.getn(res) do
+											local t = {}
+											t[res[i]] = res[i + 1]
+											-- pcontent.sn .. ":" .. pcontent.uk
+											local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[i])
+											local resultvb = memc:get(kvid)
+											if not resultvb then
+												-- respbody[res[1]] = res[2]
+												ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
+												-- ngx.print(error003("failed to get originality data from kvdb: ", kvid, err))
+												-- return
+												-- 取不到值也不要退出，避免过去的vb是空或者''
+											else
+											-- ngx.say(res[1])
+												t["oriValue"] = resultvb
+											end
+											checknil = true
+											resnum = resnum + 1
+											i = i + 2
+											table.insert(respbody,t)
+										end
+									else
+										checknil = true
+									end
 								end
 							end
-						end
-						if checknil ~= false then
-							-- ngx.print(JSON.encode(respbody))
-							local result = {};
-							result["resultCode"] = 0;
-							result["dataNumber"] = resnum;
-							result["dataDetail"] = respbody;
-							ngx.print(JSON.encode(result))
+							if checknil ~= false then
+								-- ngx.print(JSON.encode(respbody))
+								local result = {};
+								result["resultCode"] = 0;
+								result["dataNumber"] = resnum;
+								result["dataDetail"] = respbody;
+								ngx.print(JSON.encode(result))
+							else
+								ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
+								-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+							end
 						else
-							ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
-							-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+							local idx1,idx2,idx3,idx4 = string.find(harg["If-Match"], '(%d+),(%d+)')
+							if tonumber(idx3) ~= nil and tonumber(idx4) ~= nil then
+								local checknil = false;
+								local respbody = {};
+								local resnum = 0;
+							    for key, val in pairs(parg) do
+									local res, err = red:zrangebyscore(key, idx3, idx4, "WITHSCORES")
+									if not res then
+										ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+										return
+									else
+										if table.getn(res) ~= 0 then
+											local i = 1;
+											while i < table.getn(res) do
+												local t = {}
+												t[res[i]] = res[i + 1]
+												-- pcontent.sn .. ":" .. pcontent.uk
+												local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[i])
+												local resultvb = memc:get(kvid)
+												if not resultvb then
+													-- respbody[res[1]] = res[2]
+													ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
+												else
+												-- ngx.say(res[1])
+													t["oriValue"] = resultvb
+												end
+												checknil = true
+												resnum = resnum + 1
+												i = i + 2
+												table.insert(respbody,t)
+											end
+										else
+											checknil = true
+										end
+									end
+								end
+								if checknil ~= false then
+									-- ngx.print(JSON.encode(respbody))
+									local result = {};
+									result["resultCode"] = 0;
+									result["dataNumber"] = resnum;
+									result["dataDetail"] = respbody;
+									ngx.print(JSON.encode(result))
+								else
+									ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
+									-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+								end
+							else
+								ngx.print(error008)
+							end
 						end
 					end
 				else

@@ -91,7 +91,8 @@ local body, code, headers, status = http.request {
 		-- ["SOAPAction"] = "http://ctrip.com/Request",
 		["Cache-Control"] = "no-cache",
 		["Auth-Appid"] = appid,
-		["If-Match"] = 'sort',
+		-- ["If-Match"] = 'sort',
+		["If-Match"] = "[400,400]",
 		["Sn"] = "rms:renwu",
 		["Auth-Timestamp"] = timestamp,
 		["Auth-Signature"] = md5.sumhexa(sinakey .. timestamp .. appid),
@@ -135,7 +136,7 @@ local request = ([=[{
     "vb": "AA1111114sIAAAAAAAAZ5iksQY7xGuMrcddntAkchVd4K0WO2iZeHpQ5KQMwCSF4q7fmYd8",
     "sn": "rms:renwu",
     "dt": %s,
-    "uk": "domc/ctrip/20141010.00000000/cannyc",
+    "uk": "domc/ctrip/20141010.00000000/sfohan",
 	"sc": 400
 }]=]):format(11)
 print(request);

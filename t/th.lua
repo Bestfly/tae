@@ -71,3 +71,9 @@ print(idx2)
 print(idx3)
 print(idx4)
 print(idx5)
+
+
+a = "(234234,234234234]"
+local idx1,idx2,idx3,idx4 = string.find(a, '(%d+),(%d+)')
+print(idx3,idx4)
+print(string.sub(a,1,idx1-1),string.sub(a,idx2+1,-1))
