@@ -5,8 +5,8 @@
 -- begin of the idea : http://rhomobi.com/topics/
 -- little Sun corp to load total data
 -- load library
--- package.path = "/usr/local/webserver/lua/lib/?.lua;";
--- local xml = require 'LuaXml'
+package.path = "/usr/local/webserver/lua/lib/?.lua;";
+local xml = require 'LuaXml'
 local JSON = require 'cjson'
 if string.find(_VERSION, "5.2") then
 	table.getn = function (t)
@@ -73,31 +73,21 @@ end
 local file = io.open("/Users/rhomobi/Downloads/SkyDrive/travelsky/gds/litsun/data/NFD_data/service_data.xml", "r");
 local content = file:read("*all")
 file:close();
-content = string.sub(content, 11, -1)
-content = collect(content)
 -- Type_ID
 -- CLASSAGIO
-for i = 1, table.getn(content[2]) do
-	if content[2][i]["label"] == "CLASSAGIO" then
-		local pl = {};
-		for k = 1, table.getn(content[2][i]) do
-			if content[2][i][k]["label"] ~= "EI" and content[2][i][k]["label"] ~= "Comment" and content[2][i][k]["label"] ~= "Sale" then
-				pl[content[2][i][k]["label"]] = content[2][i][k][1]
-			else
-				if content[2][i][k]["label"] == "Sale" then
-					pl[content[2][i][k]["label"]] = string.sub(content[2][i][k][1], 10, -4)
-				end
-				if content[2][i][k]["label"] == "Comment" then
-					pl[content[2][i][k]["label"]] = string.sub(content[2][i][k][1], 10, -4)
-				end
-				if content[2][i][k]["label"] == "EI" then
-					pl[content[2][i][k]["label"]] = string.sub(content[2][i][k][1], 10, -4)
-				end
-			end
-		end
-		print(JSON.encode(pl))
-		if i > 1 then
-			break;
+local idx1 = string.find(content, "<CLASSAGIO");
+local idx2 = string.find(content, "</CLASSAGIO>");
+local prdata = string.sub(content, idx1, idx2+12);
+-- print(string.sub(prdata,1,100))
+-- print(string.sub(prdata,-100,-1))
+local pr_xml = xml.eval(prdata);
+local xscene = pr_xml:find("CLASSAGIO");
+if xscene ~= nil then
+	local rcs = tonumber(xscene[1][1]);
+	-- print(table.getn(xscene))
+	for i = 1, table.getn(xscene) do
+		for k,v in pairs(xscene[i]) do
+			print(k,v)
 		end
 	end
 end
