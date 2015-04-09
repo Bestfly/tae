@@ -316,7 +316,8 @@ else
 									local idx1, idx2, idx3, idx4, idx5 = string.find(tkey, '([a-z]+):([0-9a-zA-Z]+):(.+)');
 									-- sn[1] = 3 & uk > 3
 									if string.len(idx3) == 3 and string.len(idx5) > 2 then
-										local res, err = red:zadd(pcontent.sn, tonumber(pcontent.sc), pcontent.uk)
+										-- local res, err = red:zadd(pcontent.sn, tonumber(pcontent.sc), pcontent.uk)
+										local res, err = red:zset(pcontent.sn, pcontent.uk, tonumber(pcontent.sc))
 										if not res then
 											ngx.print(error003("failed to add sort vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
 											return
