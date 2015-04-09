@@ -118,7 +118,6 @@ if ngx.var.request_method ~= "POST" then
 								else
 									respbody[key] = JSON.null
 									checknil = true
-									resnum = resnum + 1
 									red:del(tkey);
 								end
 							end
@@ -177,7 +176,6 @@ if ngx.var.request_method ~= "POST" then
 								else
 									t = JSON.null
 									checknil = true
-									resnum = resnum + 1
 									table.insert(respbody,t)
 									red:del(tkey);
 								end
@@ -235,7 +233,6 @@ if ngx.var.request_method ~= "POST" then
 									else
 										t = JSON.null
 										checknil = true
-										resnum = resnum + 1
 										table.insert(respbody,t)
 										red:del(tkey);
 									end
