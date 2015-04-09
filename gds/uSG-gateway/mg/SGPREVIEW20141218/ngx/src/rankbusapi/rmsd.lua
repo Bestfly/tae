@@ -7,7 +7,7 @@
 -- load library
 local JSON = require 'cjson'
 local base64 = require 'base64'
-package.path = "/mnt/data/usgcore/ngx/lib/?.lua;";
+package.path = "/mnt/dc/usgcore/ngx/lib/?.lua;";
 local redis = require "resty.redis"
 local http = require "resty.http"
 local memcached = require "resty.memcached"
@@ -37,9 +37,9 @@ if not red then
 end
 -- lua socket timeout
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
-red:set_timeout(1000) -- 1 sec
+red:set_timeout(3000) -- 1 sec
 -- nosql connect
-local ok, err = red:connect("10.171.99.210", 61390)
+local ok, err = red:connect("127.0.0.1", 61398)
 if not ok then
 	ngx.print(error003("failed to connect redis: ", err))
 	return
@@ -56,7 +56,7 @@ if not memc then
     return
 end
 memc:set_timeout(3000) -- 3 sec
-local ok, err = memc:connect("127.0.0.1", 61978)
+local ok, err = memc:connect("127.0.0.1", 11978)
 if not ok then
     ngx.print(error003("failed to connect: ", err))
     return
@@ -105,7 +105,7 @@ if ngx.var.request_method ~= "POST" then
 								local tkey = harg["sn"] .. ":" .. idx3 .. ":" .. idx4 .. ":" .. idx5
 								local hid = idx6 .. idx7
 								-- ngx.print(tkey,hid)
-								if red:exists("avh:" .. tkey) ~= false then
+								if red:exists("avh:" .. tkey) ~= 0 then
 									local res, err = red:hget(tkey, hid)
 									if not res then
 										ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
@@ -140,7 +140,7 @@ if ngx.var.request_method ~= "POST" then
 							local respbody = {};
 							local resnum = 0;
 						    for key, val in pairs(parg) do
-								if red:exists("avh:" .. key) ~= false then
+								if red:exists("avh:" .. key) ~= 0 then
 									local res, err = red:zrange(key, 0, 0, "WITHSCORES") -- ZRANGE myzset 0 -1
 									if not res then
 										ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
@@ -200,7 +200,9 @@ if ngx.var.request_method ~= "POST" then
 								local respbody = {};
 								local resnum = 0;
 							    for key, val in pairs(parg) do
-									if red:exists("avh:" .. key) ~= false then
+									-- ngx.say(red:exists("avh:" .. key))
+									-- true 1, false 0
+									if red:exists("avh:" .. key) ~= 0 then
 										local res, err = red:zrangebyscore(key, idx3, idx4, "WITHSCORES")
 										if not res then
 											ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
@@ -341,7 +343,8 @@ else
 											if tonumber(pcontent.tl) ~= nil then
 												local r, e = red:set("avh:" .. tkey, 1)
 												if not e then
-													red:expire("avh:" .. tkey, tonumber(pcontent.tl))
+													r,e = red:expire("avh:" .. tkey, tonumber(pcontent.tl))
+													ngx.say(r,e)
 												end
 											end
 										end
