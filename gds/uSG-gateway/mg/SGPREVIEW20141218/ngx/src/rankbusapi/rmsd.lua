@@ -105,14 +105,21 @@ if ngx.var.request_method ~= "POST" then
 								local tkey = harg["sn"] .. ":" .. idx3 .. ":" .. idx4 .. ":" .. idx5
 								local hid = idx6 .. idx7
 								-- ngx.print(tkey,hid)
-								local res, err = red:hget(tkey, hid)
-								if not res then
-									ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
-									return
+								if red:exists("avh:" .. tkey) ~= false then
+									local res, err = red:hget(tkey, hid)
+									if not res then
+										ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
+										return
+									else
+										respbody[key] = res
+										checknil = true
+										resnum = resnum + 1
+									end
 								else
-									respbody[key] = res
+									respbody[key] = JSON.null
 									checknil = true
 									resnum = resnum + 1
+									red:del(tkey);
 								end
 							end
 						end
@@ -133,38 +140,46 @@ if ngx.var.request_method ~= "POST" then
 							local respbody = {};
 							local resnum = 0;
 						    for key, val in pairs(parg) do
-								local res, err = red:zrange(key, 0, 0, "WITHSCORES") -- ZRANGE myzset 0 -1
-								if not res then
-									ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
-									return
-								else
-									if table.getn(res) ~= 0 then
-										local i = 1;
-										-- ngx.say(table.getn(res),res[1],res[2],res[3],res[4])
-										while i < table.getn(res) do
-											local t = {}
-											t[res[i]] = res[i + 1]
-											-- pcontent.sn .. ":" .. pcontent.uk
-											local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[i])
-											local resultvb = memc:get(kvid)
-											if not resultvb then
-												-- respbody[res[1]] = res[2]
-												ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
-												-- ngx.print(error003("failed to get originality data from kvdb: ", kvid, err))
-												-- return
-												-- 取不到值也不要退出，避免过去的vb是空或者''
-											else
-											-- ngx.say(res[1])
-												t["oriValue"] = resultvb
-											end
-											checknil = true
-											resnum = resnum + 1
-											i = i + 2
-											table.insert(respbody,t)
-										end
+								if red:exists("avh:" .. key) ~= false then
+									local res, err = red:zrange(key, 0, 0, "WITHSCORES") -- ZRANGE myzset 0 -1
+									if not res then
+										ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+										return
 									else
-										checknil = true
+										if table.getn(res) ~= 0 then
+											local i = 1;
+											-- ngx.say(table.getn(res),res[1],res[2],res[3],res[4])
+											while i < table.getn(res) do
+												local t = {}
+												t[res[i]] = res[i + 1]
+												-- pcontent.sn .. ":" .. pcontent.uk
+												local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[i])
+												local resultvb = memc:get(kvid)
+												if not resultvb then
+													-- respbody[res[1]] = res[2]
+													ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
+													-- ngx.print(error003("failed to get originality data from kvdb: ", kvid, err))
+													-- return
+													-- 取不到值也不要退出，避免过去的vb是空或者''
+												else
+												-- ngx.say(res[1])
+													t["oriValue"] = resultvb
+												end
+												checknil = true
+												resnum = resnum + 1
+												i = i + 2
+												table.insert(respbody,t)
+											end
+										else
+											checknil = true
+										end
 									end
+								else
+									t = JSON.null
+									checknil = true
+									resnum = resnum + 1
+									table.insert(respbody,t)
+									red:del(tkey);
 								end
 							end
 							if checknil ~= false then
@@ -185,34 +200,42 @@ if ngx.var.request_method ~= "POST" then
 								local respbody = {};
 								local resnum = 0;
 							    for key, val in pairs(parg) do
-									local res, err = red:zrangebyscore(key, idx3, idx4, "WITHSCORES")
-									if not res then
-										ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
-										return
-									else
-										if table.getn(res) ~= 0 then
-											local i = 1;
-											while i < table.getn(res) do
-												local t = {}
-												t[res[i]] = res[i + 1]
-												-- pcontent.sn .. ":" .. pcontent.uk
-												local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[i])
-												local resultvb = memc:get(kvid)
-												if not resultvb then
-													-- respbody[res[1]] = res[2]
-													ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
-												else
-												-- ngx.say(res[1])
-													t["oriValue"] = resultvb
-												end
-												checknil = true
-												resnum = resnum + 1
-												i = i + 2
-												table.insert(respbody,t)
-											end
+									if red:exists("avh:" .. key) ~= false then
+										local res, err = red:zrangebyscore(key, idx3, idx4, "WITHSCORES")
+										if not res then
+											ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+											return
 										else
-											checknil = true
+											if table.getn(res) ~= 0 then
+												local i = 1;
+												while i < table.getn(res) do
+													local t = {}
+													t[res[i]] = res[i + 1]
+													-- pcontent.sn .. ":" .. pcontent.uk
+													local kvid = string.sub(key, 1, 3) .. ngx.md5(key .. ":" .. res[i])
+													local resultvb = memc:get(kvid)
+													if not resultvb then
+														-- respbody[res[1]] = res[2]
+														ngx.log(ngx.ERR, error003("failed to get originality data from kvdb: ", kvid, err))
+													else
+													-- ngx.say(res[1])
+														t["oriValue"] = resultvb
+													end
+													checknil = true
+													resnum = resnum + 1
+													i = i + 2
+													table.insert(respbody,t)
+												end
+											else
+												checknil = true
+											end
 										end
+									else
+										t = JSON.null
+										checknil = true
+										resnum = resnum + 1
+										table.insert(respbody,t)
+										red:del(tkey);
 									end
 								end
 								if checknil ~= false then
@@ -276,7 +299,10 @@ else
 								else
 									-- client:expire('intl:ctrip:' .. tkey, (expiret - os.time()))
 									if tonumber(pcontent.tl) ~= nil then
-										red:expire(tkey, tonumber(pcontent.tl))
+										local r, e = red:set("avh:" .. tkey, 1)
+										if not e then
+											red:expire("avh:" .. tkey, tonumber(pcontent.tl))
+										end
 									end
 									ngx.print(error000("Sucess to save vb->>" .. tkey .. '|' .. hid .. '|' .. pcontent.vb))
 								end
@@ -313,7 +339,10 @@ else
 											end
 											-- client:expire('intl:ctrip:' .. tkey, (expiret - os.time()))
 											if tonumber(pcontent.tl) ~= nil then
-												red:expire(tkey, tonumber(pcontent.tl))
+												local r, e = red:set("avh:" .. tkey, 1)
+												if not e then
+													red:expire("avh:" .. tkey, tonumber(pcontent.tl))
+												end
 											end
 										end
 									else
