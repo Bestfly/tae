@@ -118,7 +118,7 @@ if ngx.var.request_method ~= "POST" then
 								else
 									respbody[key] = JSON.null
 									checknil = true
-									red:del(tkey);
+									red:hclear(tkey);
 								end
 							end
 						end
@@ -177,7 +177,7 @@ if ngx.var.request_method ~= "POST" then
 									t = JSON.null
 									checknil = true
 									table.insert(respbody,t)
-									red:del(tkey);
+									red:zclear(key)
 								end
 							end
 							if checknil ~= false then
@@ -234,7 +234,7 @@ if ngx.var.request_method ~= "POST" then
 										t = JSON.null
 										checknil = true
 										table.insert(respbody,t)
-										red:del(tkey);
+										red:zclear(key);
 									end
 								end
 								if checknil ~= false then
@@ -298,10 +298,9 @@ else
 								else
 									-- client:expire('intl:ctrip:' .. tkey, (expiret - os.time()))
 									if tonumber(pcontent.tl) ~= nil then
-										local r, e = red:set("avh:" .. tkey, 1)
-										if not e then
-											red:expire("avh:" .. tkey, tonumber(pcontent.tl))
-										end
+										red:setx("avh:" .. tkey, 1, tonumber(pcontent.tl))
+									else
+										red:set("avh:" .. tkey, 1)
 									end
 									ngx.print(error000("Sucess to save vb->>" .. tkey .. '|' .. hid .. '|' .. pcontent.vb))
 								end
@@ -339,11 +338,9 @@ else
 											end
 											-- client:expire('intl:ctrip:' .. tkey, (expiret - os.time()))
 											if tonumber(pcontent.tl) ~= nil then
-												local r, e = red:set("avh:" .. tkey, 1)
-												if not e then
-													r,e = red:expire("avh:" .. tkey, tonumber(pcontent.tl))
-													ngx.say(r,e)
-												end
+												red:setx("avh:" .. pcontent.sn, 1, tonumber(pcontent.tl))
+											else
+												red:set("avh:" .. tkey, 1)
 											end
 										end
 									else
