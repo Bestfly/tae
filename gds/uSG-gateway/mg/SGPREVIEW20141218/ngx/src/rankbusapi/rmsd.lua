@@ -109,6 +109,7 @@ if ngx.var.request_method ~= "POST" then
 									local res, err = red:hget(tkey, hid)
 									if not res then
 										ngx.print(error003("failed to get vb->>" .. tkey .. '|' .. hid))
+										ngx.log(ngx.ERR, error003("failed to get vb->>" .. tkey .. '|' .. hid))
 										return
 									else
 										respbody[key] = res
@@ -140,9 +141,11 @@ if ngx.var.request_method ~= "POST" then
 							local resnum = 0;
 						    for key, val in pairs(parg) do
 								if red:exists("avh:" .. key) ~= 0 then
-									local res, err = red:zrange(key, 0, 0, "WITHSCORES") -- ZRANGE myzset 0 -1
+									local res, err = red:zrange(key, 0, 0) -- ZRANGE myzset 0 -1
 									if not res then
-										ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+										local t = ngx.now()
+										ngx.print(error003("failed to get vb->>" .. key .. '|' .. t))
+										ngx.log(ngx.ERR, error003("failed to get vb->>" .. key .. '|' .. t))
 										return
 									else
 										if table.getn(res) ~= 0 then
@@ -201,9 +204,12 @@ if ngx.var.request_method ~= "POST" then
 									-- ngx.say(red:exists("avh:" .. key))
 									-- true 1, false 0
 									if red:exists("avh:" .. key) ~= 0 then
-										local res, err = red:zrangebyscore(key, idx3, idx4, "WITHSCORES")
+										-- 根据次序, [0,99]/[100,999]
+										local res, err = red:zrange(key, idx3, idx4)
 										if not res then
-											ngx.print(error003("failed to get vb->>" .. key .. '|' .. ngx.now()))
+											local t = ngx.now()
+											ngx.print(error003("failed to get vb->>" .. key .. '|' .. t))
+											ngx.log(ngx.ERR, error003("failed to get vb->>" .. key .. '|' .. t))
 											return
 										else
 											if table.getn(res) ~= 0 then
@@ -246,6 +252,7 @@ if ngx.var.request_method ~= "POST" then
 									ngx.print(JSON.encode(result))
 								else
 									ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
+									ngx.log(ngx.ERR, error003("Bad [a,b] to get vb->>" .. idx3 .. '|' .. idx4))
 									-- ngx.exit(ngx.HTTP_BAD_REQUEST);
 								end
 							else
@@ -294,6 +301,7 @@ else
 								local res, err = red:hset(tkey, hid, pcontent.vb)
 								if not res then
 									ngx.print(error003("failed to save vb->>" .. tkey .. '|' .. hid .. '|' .. pcontent.vb))
+									ngx.log(ngx.ERR, error003("failed to save vb->>" .. tkey .. '|' .. hid .. '|' .. pcontent.vb))
 									return
 								else
 									-- client:expire('intl:ctrip:' .. tkey, (expiret - os.time()))
@@ -306,6 +314,7 @@ else
 								end
 							else
 								ngx.print(error003("error001#unKnow sn+uk#Content"))
+								ngx.log(ngx.ERR, error003("error001#unKnow sn+uk#Content"))
 							end
 						else
 							if pcontent.dt == 11 then
@@ -319,6 +328,7 @@ else
 										local res, err = red:zset(pcontent.sn, pcontent.uk, tonumber(pcontent.sc))
 										if not res then
 											ngx.print(error003("failed to add sort vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
+											ngx.log(ngx.ERR, error003("failed to add sort vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
 											return
 										else
 											if pcontent.vb ~= nil then
@@ -326,12 +336,14 @@ else
 													local ok = memc:set(idx3 .. ngx.md5(tkey), pcontent.vb)
 													if not ok then
 														ngx.print(error003("failed to save vb->>" .. idx3 .. tkey .. '|' .. pcontent.uk .. '|' .. pcontent.vb))
+														ngx.log(ngx.ERR, error003("failed to save vb->>" .. idx3 .. tkey .. '|' .. pcontent.uk .. '|' .. pcontent.vb))
 														return
 													else
 														ngx.print(error000("Sucess to save vb->>" .. idx3 .. tkey .. '|' .. pcontent.uk .. '|' .. pcontent.vb))
 													end
 												else
 													ngx.print(error007)
+													ngx.log(ngx.ERR, error007)
 												end
 											else
 												ngx.print(error000("Sucess to add sort vb->>" .. pcontent.sn .. '|' .. pcontent.sc .. '|' .. pcontent.uk))
@@ -340,7 +352,7 @@ else
 											if tonumber(pcontent.tl) ~= nil then
 												red:setx("avh:" .. pcontent.sn, 1, tonumber(pcontent.tl))
 											else
-												red:set("avh:" .. tkey, 1)
+												red:set("avh:" .. pcontent.sn, 1)
 											end
 										end
 									else
