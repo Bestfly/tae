@@ -212,6 +212,7 @@ if ngx.var.request_method ~= "POST" then
 											ngx.log(ngx.ERR, error003("failed to get vb->>" .. key .. '|' .. t))
 											return
 										else
+											ngx.log(ngx.ERR, error003(JSON.encode(res)));
 											if table.getn(res) ~= 0 then
 												local i = 1;
 												while i < table.getn(res) do
@@ -237,6 +238,7 @@ if ngx.var.request_method ~= "POST" then
 											end
 										end
 									else
+										ngx.log(ngx.ERR, error003(key .. "|" .. red:exists("avh:" .. key)))
 										t = JSON.null
 										checknil = true
 										table.insert(respbody,t)
@@ -252,7 +254,7 @@ if ngx.var.request_method ~= "POST" then
 									ngx.print(JSON.encode(result))
 								else
 									ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE);
-									ngx.log(ngx.ERR, error003("Bad [a,b] to get vb->>" .. idx3 .. '|' .. idx4))
+									ngx.log(ngx.ERR, error003(JSON.encode(respbody) .. "| Bad [a,b] to get vb->>" .. idx3 .. '|' .. idx4))
 									-- ngx.exit(ngx.HTTP_BAD_REQUEST);
 								end
 							else
