@@ -21,11 +21,12 @@ local error0001 = JSON.encode({ ["Code"] = "0001", ["Message"] = "系统异常"}
 local error0012 = JSON.encode({ ["Code"] = "0012", ["Message"] = "参数格式错误"});
 local error0013 = JSON.encode({ ["Code"] = "0013", ["Message"] = "产品不存在"});
 local error0014 = JSON.encode({ ["Code"] = "0014", ["Message"] = "产品编号为空"});
+local error0100 = JSON.encode({ ["Code"] = "100", ["Message"] = "请求参数为空"});
 -- init db connection
 local db, err = mysql:new()
 if not db then
-	ngx.print(ngx.ERR, "failed to instantiate mysql: ", err)
-	-- ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
+	-- ngx.print(ngx.ERR, "failed to instantiate mysql: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
 	return
 end
 db:set_timeout(3000) -- 1 sec
@@ -37,7 +38,9 @@ local ok, err, errno, sqlstate = db:connect{
     password = "b6x7p6b6x7p6",
     max_packet_size = 1024 * 1024 }
 if not ok then
-    ngx.print("failed to connect: ", err, ": ", errno, " ", sqlstate)
+    -- ngx.print("failed to connect: ", err, ": ", errno, " ", sqlstate)
+	ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errno, " ", sqlstate)
+	return
 end
 --[[
 local memc, err = memcached:new()
@@ -59,7 +62,8 @@ if ngx.var.request_method ~= "GET" then
 	-- local puri = ngx.var.URI;
 	local harg = ngx.req.get_headers();
 	if not pcontent then
-		ngx.exit(ngx.HTTP_BAD_REQUEST);
+		-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+		ngx.print(error0100)
 	else
 		pcontent = JSON_safe.decode(pcontent)
 		if not pcontent then
@@ -67,12 +71,21 @@ if ngx.var.request_method ~= "GET" then
 		else
 			local pdata = "";
 			if pcontent.productId ~= nil then
-				pdata = ([=[
+				-- ngx.say(type(pcontent.productId))
+				if type(pcontent.productId) ~= 'string' and type(pcontent.productId) ~= 'number' then
+					ngx.print(error0012)
+					return
+				else
+					-- SELECT LeaveDates,teamlevel,reprice AS price FROM tour_price_info WHERE tour_price_status!=1 AND difference>0 AND tour_basic_info_id='%s'
+					-- 加入房差逻辑
+					-- SELECT DATE_FORMAT(LeaveDates,'%Y-%m-%d') AS DATE,teamlevel,reprice AS price , (CASE is_have_resroomprice WHEN 1 THEN resroomprice WHEN 0 THEN 0 ELSE 0 END) AS singleSupplySellPrice FROM tour_price_info WHERE tour_price_status!=1 tour_basic_info_id='1023950';
+					pdata = ([=[
 				
-				SELECT LeaveDates,teamlevel,reprice AS price FROM tour_price_info WHERE tour_price_status!=1 AND difference>0 AND tour_basic_info_id='%s'
+					SELECT is_have_resroomprice,resroomprice,LeaveDates,teamlevel,reprice AS price FROM tour_price_info WHERE tour_price_status!=1 AND difference>0 AND tour_basic_info_id='%s'
 			
-				]=]):format(pcontent.productId)
-				-- ngx.print(pcontent)
+					]=]):format(pcontent.productId)
+					-- ngx.print(pcontent)
+				end
 			else
 				ngx.print(error0014)
 				return
@@ -94,7 +107,13 @@ if ngx.var.request_method ~= "GET" then
 						local rt = {}
 						-- ngx.print(JSON.encode(res[i]))
 						-- ngx.print(res[i].price, string.sub(res[i].LeaveDates,1,10))
+						if tonumber(res[i].is_have_resroomprice) ~= 1 then
+							rt["singleSupplySellPrice"] = 0
+						else
+							rt["singleSupplySellPrice"] = res[i].resroomprice
+						end
 						rt["price"] = res[i].price
+						rt["teamlevel"] = res[i].teamlevel
 						rt["date"] = string.sub(res[i].LeaveDates,1,10)
 						table.insert(rest, rt)
 					end

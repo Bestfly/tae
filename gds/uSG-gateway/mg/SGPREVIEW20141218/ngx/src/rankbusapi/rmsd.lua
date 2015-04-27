@@ -205,7 +205,8 @@ if ngx.var.request_method ~= "POST" then
 									-- true 1, false 0
 									if red:exists("avh:" .. key) ~= 0 then
 										-- 根据次序, [0,99]/[100,999]
-										local res, err = red:zrange(key, idx3, idx4)
+										-- local res, err = red:zrange(key, idx3, idx4)
+										local res, err = red:zrangebyscore(key, idx3, idx4, "WITHSCORES")
 										if not res then
 											local t = ngx.now()
 											ngx.print(error003("failed to get vb->>" .. key .. '|' .. t))

@@ -21,11 +21,11 @@ local error0001 = JSON.encode({ ["Code"] = "0001", ["Message"] = "系统异常"}
 local error0012 = JSON.encode({ ["Code"] = "0012", ["Message"] = "参数格式错误"});
 local error0013 = JSON.encode({ ["Code"] = "0013", ["Message"] = "产品不存在"});
 local error0014 = JSON.encode({ ["Code"] = "0014", ["Message"] = "产品编号为空"});
+local error0100 = JSON.encode({ ["Code"] = "100", ["Message"] = "请求参数为空"});
 -- init db connection
 local db, err = mysql:new()
 if not db then
-	ngx.print(ngx.ERR, "failed to instantiate mysql: ", err)
-	-- ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
+	ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
 	return
 end
 db:set_timeout(3000) -- 1 sec
@@ -37,7 +37,8 @@ local ok, err, errno, sqlstate = db:connect{
     password = "b6x7p6b6x7p6",
     max_packet_size = 1024 * 1024 }
 if not ok then
-    ngx.print("failed to connect: ", err, ": ", errno, " ", sqlstate)
+	ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errno, " ", sqlstate)
+	return
 end
 --[[
 local memc, err = memcached:new()
@@ -59,20 +60,26 @@ if ngx.var.request_method ~= "GET" then
 	-- local puri = ngx.var.URI;
 	local harg = ngx.req.get_headers();
 	if not pcontent then
-		ngx.exit(ngx.HTTP_BAD_REQUEST);
+		-- ngx.exit(ngx.HTTP_BAD_REQUEST);
+		ngx.print(error0100)
 	else
 		pcontent = JSON_safe.decode(pcontent)
 		if not pcontent then
 			ngx.print(error0012)
 		else
 			local pdata = "";
-			if pcontent.prouctId ~= nil then
-				pdata = ([=[
+			if pcontent.productId ~= nil then
+				if type(pcontent.productId) ~= 'string' and type(pcontent.productId) ~= 'number' then
+					ngx.print(error0012)
+					return
+				else
+					pdata = ([=[
 				
-				SELECT price_Up FROM tour_basic_info tbi WHERE tbi.tour_status=4 AND tbi.tour_basic_info_id='%s'
+					SELECT price_Up FROM tour_basic_info tbi WHERE tbi.tour_status=4 AND tbi.tour_basic_info_id='%s'
 				
-				]=]):format(pcontent.prouctId)
-				-- ngx.print(pcontent)
+					]=]):format(pcontent.productId)
+					-- ngx.print(pcontent)
+				end
 			else
 				ngx.print(error0014)
 				return
