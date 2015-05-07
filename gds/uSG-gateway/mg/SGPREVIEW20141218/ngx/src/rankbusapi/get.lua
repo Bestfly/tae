@@ -88,9 +88,17 @@ if ngx.var.request_method ~= "POST" then
 					local t = {};
 					ngx.log(ngx.ERR, ngx.var.s1 .. ngx.md5(ngx.var.s1 .. ":" .. ngx.var.s2 .. ":" .. ngx.var.uk),restt)
 					if restt ~= nil then
-						t[ngx.var.uk] = restt
+						local res, err = red:zscore(ngx.var.s1 .. ":" .. ngx.var.s2, ngx.var.uk)
+						if tonumber(res) ~= nil then
+							t[ngx.var.uk] = res
+							t["oriValue"] = restt
+						else
+							t["oriValue"] = restt
+							t[ngx.var.uk] = JSON.null
+						end
 					else
 						t[ngx.var.uk] = JSON.null
+						t["oriValue"] = JSON.null
 					end
 					ngx.print(error000(JSON.encode(t)))
 				else

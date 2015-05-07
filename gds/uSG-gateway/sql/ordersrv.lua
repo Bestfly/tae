@@ -108,7 +108,7 @@ if ngx.var.request_method ~= "GET" then
 		else
 			if pcontent.OrderType ~= nil then
 				-- ngx.say(type(pcontent.productId))
-				if (type(pcontent.OrderType) ~= 'string' and type(pcontent.OrderType) ~= 'number') or tonumber(pcontent.OrderType) == nil then
+				if (type(pcontent.OrderType) ~= 'string' and type(pcontent.OrderType) ~= 'number') or tonumber(pcontent.OrderType) == nil or string.len(pcontent.OrderType) ~= 1 then
 					ngx.print(error0012)
 					return
 				else

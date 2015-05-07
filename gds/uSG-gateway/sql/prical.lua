@@ -119,6 +119,7 @@ if ngx.var.request_method ~= "GET" then
 					end
 					local t = {}
 					local r = {}
+					-- table.sort(rest)
 					t["priceData"] = rest
 					-- t["isAll"] = 1
 					r["Result"] = t
