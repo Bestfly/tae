@@ -10,11 +10,11 @@ local socket = require 'socket'
 local http = require 'socket.http'
 local JSON = require 'cjson'
 local md5 = require 'md5'
-package.path = "/usr/local/webserver/lua/lib/?.lua;";
+package.path = "/mnt/data/usgcore/ngx/lib/?.lua;";
 local redis = require 'redis'
 local master = {
-    host = '10.10.130.93',
-    port = 16390,
+    host = '10.171.99.210',
+    port = 61390,
 }
 local client = redis.connect(master)
 -- local authok, autherr = slavec:auth("142ffb5bfa1-cn-jijilu-dg-a01")
@@ -40,12 +40,36 @@ redis.commands.rename = redis.command('rename')
 redis.commands.exists = redis.command('exists')
 redis.commands.exists = redis.command('zremrangebyscore')
 require('luamemcached.Memcached')
-memcache = Memcached.Connect('10.10.130.93', 61978)
+memcache = Memcached.Connect('127.0.0.1', 61978)
 function sleep(n)
    socket.select(nil, nil, n)
 end
 -- client:zremrangebyscore("dip:vals:czflt", "-inf", (os.time()-259200))
 -- client:zremrangebyscore("dip:vals:czpsg", "-inf", (os.time()-259200))
+while true do
+local r,e = client:zrangebyscore("trs:times", "-inf", os.time())
+	if table.getn(r) > 0 then
+		for k,v in pairs(r) do
+			-- print(k,v)
+			local rmem = memcache:delete(v)
+			if rmem ~= true then
+				print("^Amem^A" .. v)
+			else
+				local rred,ered = client:zrem("trs:times", v)
+				if rred ~= 1 then
+					print("^Ared^A" .. v)
+				else
+					print("^Atrs^A" .. v)
+				end
+			end
+			sleep(0.1)
+		end
+	else
+		print("------^ANOtlData left------")
+		sleep(10)
+	end
+end
+--[[
 local r,e = client:keys("*vals*")
 for k,v in pairs(r) do
 	-- print(v)
@@ -74,4 +98,4 @@ for k,v in pairs(r) do
 	end
 	-- break;
 end
---end
+--]]
