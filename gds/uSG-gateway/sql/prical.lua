@@ -70,6 +70,7 @@ if ngx.var.request_method ~= "GET" then
 			ngx.print(error0012)
 		else
 			local pdata = "";
+			local signe = "";
 			if pcontent.productId ~= nil then
 				-- ngx.say(type(pcontent.productId))
 				if type(pcontent.productId) ~= 'string' and type(pcontent.productId) ~= 'number' then
@@ -80,9 +81,15 @@ if ngx.var.request_method ~= "GET" then
 					-- 加入房差逻辑
 					-- SELECT DATE_FORMAT(LeaveDates,'%Y-%m-%d') AS DATE,teamlevel,reprice AS price , (CASE is_have_resroomprice WHEN 1 THEN resroomprice WHEN 0 THEN 0 ELSE 0 END) AS singleSupplySellPrice FROM tour_price_info WHERE tour_price_status!=1 tour_basic_info_id='1023950';
 					pdata = ([=[
-				
-					SELECT is_have_resroomprice,resroomprice,LeaveDates,teamlevel,reprice AS price FROM tour_price_info WHERE tour_price_status!=1 AND difference>0 AND tour_basic_info_id='%s'
-			
+					
+					SELECT is_have_resroomprice,resroomprice,LeaveDates,teamlevel,reprice AS price FROM tour_price_info WHERE tour_price_status!=1 AND tour_status=2 AND difference>0 AND tour_basic_info_id='%s'
+					
+					]=]):format(pcontent.productId)
+					
+					signe = ([=[
+					
+					SELECT SignupEnd FROM tour_basic_info WHERE tour_basic_info_id='%s';
+					
 					]=]):format(pcontent.productId)
 					-- ngx.print(pcontent)
 				end
@@ -94,11 +101,23 @@ if ngx.var.request_method ~= "GET" then
 	        -- the result set:
 	        res, err, errno, sqlstate =
 	            db:query(pdata)
-	        if not res then
+	        signres, signerr, signerrno, signstate =
+	            db:query(signe)
+	        if not res or not signres then
 	            -- ngx.print("bad result: ", err, ": ", errno, ": ", sqlstate, ".")
 				ngx.print(error0001)
 	            return
 			else
+				local signupdate = ""
+				if signres[1] ~= nil then
+					if signres[1].SignupEnd ~= nil then
+						signupdate = tonumber(signres[1].SignupEnd)
+					else
+						signupdate = 0
+					end
+				else
+					signupdate = 0
+				end
 				local l = table.getn(res)
 				if l > 0 then
 					-- ngx.print(JSON.encode(res))
@@ -107,15 +126,22 @@ if ngx.var.request_method ~= "GET" then
 						local rt = {}
 						-- ngx.print(JSON.encode(res[i]))
 						-- ngx.print(res[i].price, string.sub(res[i].LeaveDates,1,10))
-						if tonumber(res[i].is_have_resroomprice) ~= 1 then
-							rt["singleSupplySellPrice"] = 0
-						else
+						local tkey = string.sub(res[i].LeaveDates,1,10)
+						local expiret = os.time({year=string.sub(tkey, 1, 4), month=tonumber(string.sub(tkey, 6, 7)), day=tonumber(string.sub(tkey, 9, 10)), hour="24"})
+						if expiret >= os.time() + signupdate * 24 * 60 * 60 then
+							--[[
+							if tonumber(res[i].is_have_resroomprice) ~= 1 then
+								rt["singleSupplySellPrice"] = 0
+							else
+								rt["singleSupplySellPrice"] = res[i].resroomprice
+							end
+							--]]
 							rt["singleSupplySellPrice"] = res[i].resroomprice
+							rt["price"] = res[i].price
+							rt["teamlevel"] = res[i].teamlevel
+							rt["date"] = string.sub(res[i].LeaveDates,1,10)
+							table.insert(rest, rt)
 						end
-						rt["price"] = res[i].price
-						rt["teamlevel"] = res[i].teamlevel
-						rt["date"] = string.sub(res[i].LeaveDates,1,10)
-						table.insert(rest, rt)
 					end
 					local t = {}
 					local r = {}

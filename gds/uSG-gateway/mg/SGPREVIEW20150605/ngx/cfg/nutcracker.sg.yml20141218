@@ -1,0 +1,28 @@
+alpha:
+  listen: 10.10.130.93:61390
+  hash: fnv1a_64
+  distribution: ketama
+  auto_eject_hosts: true
+  redis: true
+  redis_auth: 142ffb5bfa1-cn-jijilu-dg-a75
+  server_retry_timeout: 2000
+  server_failure_limit: 1
+  servers:
+   - 10.10.130.93:16390:1
+   - 10.10.130.93:16392:1
+   - 10.10.130.93:16394:1
+
+
+gamma:
+  listen: 10.10.130.93:61978
+  hash: crc32
+  distribution: ketama
+  backlog: 1024
+  auto_eject_hosts: true
+  server_retry_timeout: 3000
+  server_failure_limit: 3
+  servers:
+   - 10.10.130.93:11978:1
+   - 10.10.130.93:12978:1
+   - 10.10.130.93:13978:1
+   - 10.10.130.93:14978:1

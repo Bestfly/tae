@@ -313,7 +313,8 @@ else
 											end
 											-- client:expire('intl:ctrip:' .. tkey, (expiret - os.time()))
 											if tonumber(pcontent.tl) ~= nil then
-												red:expire(tkey, tonumber(pcontent.tl))
+												-- red:expire(tkey, tonumber(pcontent.tl))
+												red:expire(pcontent.sn, tonumber(pcontent.tl))
 											end
 										end
 									else

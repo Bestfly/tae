@@ -1,0 +1,11 @@
+{
+  "name": "test_connection",
+  "version": "1.0.0",
+  "description": "test connection",
+  "author": "Jericho.ou",
+  "license": "ISC",
+  "dependencies": {
+    "log4js": "^0.6.25",
+    "request": "^2.55.0"
+  }
+}

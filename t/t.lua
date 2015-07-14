@@ -22,8 +22,8 @@ for k,v in pairs(socket._M) do
 end
 --]]
 local t = socket.gettime()
-local k,v = socket.dns.toip("www.qiyou365.com")
-print(k)
+local k,v = socket.dns.toip("travel.qiyou365.com")
+print(k,v)
 print("200",string.format("ms elapsed time: %.3f", (socket.gettime() - t)*1000))
 for i,j in pairs(v) do
 	print(i)
@@ -278,3 +278,4 @@ if string.find("0|0|0", "1") == nil then
 else
 	print(JSON.null)
 end
+print(tonumber(0.05))

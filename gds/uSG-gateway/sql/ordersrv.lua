@@ -17,6 +17,10 @@ local error0012 = JSON.encode({ ["Code"] = "0012", ["Message"] = "参数格式�
 local error0013 = JSON.encode({ ["Code"] = "0013", ["Message"] = "订单编号类型不符合规范"});
 local error0014 = JSON.encode({ ["Code"] = "0014", ["Message"] = "订单编号类型为空"});
 local error0100 = JSON.encode({ ["Code"] = "100", ["Message"] = "请求参数为空"});
+function error0003 (mes)
+	local res = JSON.encode({ ["resultCode"] = 3, ["description"] = mes});
+	return res
+end
 -- ready to connect to master redis.
 local red, err = redis:new()
 if not red then
@@ -30,12 +34,12 @@ red:set_timeout(3000) -- 3 sec
 -- nosql connect
 local ok, err = red:connect("127.0.0.1", 16390)
 if not ok then
-	ngx.print(error003("failed to connect redis: ", err))
+	ngx.print(error0003("failed to connect redis: ", err))
 	return
 end
 local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
 if not r then
-    ngx.print(error003("failed to authenticate: ", e))
+    ngx.print(error0003("failed to authenticate: ", e))
     return
 end
 --[[

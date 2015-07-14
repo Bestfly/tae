@@ -1,0 +1,35 @@
+10
+
+dir
+0
+svn://oujunjie@139jia.com/travel/higds/trunk/test_connection/config
+svn://oujunjie@139jia.com/travel
+add
+
+
+
+
+
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+f766f59a-0412-4b75-9aca-0444dfa3284b
+
+BaseConfig.js
+file
+
+
+
+add
+

@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head><title>The Idle-TCC interface</title>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link rel="stylesheet" type="text/css" href="idlemain.css">
+</head><body>
+<div class="sbar"><a href="index.html">Main</a><br><a href="IdleLanguage.html">Language</a><br><a href="IdleRuntime.html">Runtime</a><br><a href="IdleTools.html">Tools</a><br><a href="IdleFAQ.html">FAQs</a><br><a href="IdleChanges.html">Changes</a><br><a href="IdleDownload.html">Download</a><br><a href="Licences.html">Licence</a></div>
+<div class="main"><a name="top"></a>
+<img style="position:absolute; right:0px;" src="idle.jpg" alt="cheesy">
+<h1>The Idle-TCC interface</h1>
+<p>This is the preliminary documentation for the Idle-TCC glue module. This module allows you to embed (and execute) live C code from inside your Idle scripts. After a require('TCC') statement all TCC functions are available with the TCC prefix.</p>
+<p>Back to the <a href="IdleRuntime.html">main Idle Runtime library documentation</a>.</p>
+
+<h4>Module TCC <br><a href="#top" class="top">top of page</a></h4>
+<p>The TCC module needs two DLLs to work properly. One is the glue DLL, TCCglue.dll, which forms the interface between Idle and TCC. This DLL, in turn, loads the TCC main DLL libtcc.dll which has to be somewhere in the path. Both libraries are included in the Idle-TCC distribution.</p>
+
+<h3><a name="TCC.addIncludePath">TCC.addIncludePath</a>(tcc,inc) <br><a href="#top" class="top">top of page</a></h3>
+<p>This function adds one or more paths to the include file search path for compiler instance tcc. If inc is a string, it must be a path value to add. If inc is a table, it must be an array of such path values. This function has no return value.</p>
+
+<h3><a name="TCC.addLibrary">TCC.addLibrary</a>(tcc,lib) <br><a href="#top" class="top">top of page</a></h3>
+<p>This function adds one or more libraries to the link options for compiler instance tcc. If lib is a string, it must be the name of a valid library file to add. If lib is a table, it must be an array of such names. This function has no return value.</p>
+<p>Note: valid libraries for TCC also include DEF files. This allows you to call almost any DLL function from TCC.</p>
+
+<h3><a name="TCC.addLibraryPath">TCC.addLibraryPath</a>(tcc,lib) <br><a href="#top" class="top">top of page</a></h3>
+<p>This function adds one or more paths to the library file search path for compiler instance tcc. If lib is a string, it must be a path value to add. If lib is a table, it must be an array of such path values. This function has no return value.</p>
+
+<h3><a name="TCC.alloc">TCC.alloc</a>() <br><a href="#top" class="top">top of page</a></h3>
+<p>Allocates a new TCC compiler instance and returns it as a userdatum. In case of an error the function returns nil. You can create more than one TCC instance in a script, but not in parallel (this is a limitation of TCC). However, consecutively allocated TCC instances have their own state and keep this state between calls. To free a compiler instance, call <a href="#TCC.free">TCC.free()</a>:</p>
+<pre>local myTCC=TCC.alloc()
+-- ... lots of calls to TCC
+TCC.free(myTCC)</pre>
+
+<h3><a name="TCC.compile">TCC.compile</a>(tcc,str) <br><a href="#top" class="top">top of page</a></h3>
+<p>This function accepts a string str with C code and attempts to compile it inside compiler instance tcc. The string can be as long or as short as you want and can contain function and variable definitions, but it has to be syntactically correct C. The compiler keeps state between calls to <a href="#TCC.compile">TCC.compile()</a>; this allows to define variables and functions for later use. This function returns true if successful or false and an error message in case of an compile error. See <a href="#TCC.getSymbol">TCC.getSymbol()</a> for an example.</p>
+
+<h3><a name="TCC.free">TCC.free</a>(tcc) <br><a href="#top" class="top">top of page</a></h3>
+<p>Frees a compiler instance. You <strong>must</strong> free the current instance before creating a new one.</p>
+
+<h3><a name="TCC.getSymbol">TCC.getSymbol</a>(tcc,name) <br><a href="#top" class="top">top of page</a></h3>
+<p>This functions returns a proxy for a C function defined in compiler instance tcc. This function can then be called like any other Idle function. This allows you to call any compiled C function from Idle. Here is a simple example:</p>
+<pre>require('TCC')
+tcc=TCC.alloc()
+TCC.addLibraryPath(tcc,'..\\tcc\\lib')  -- add library path
+local b,e=TCC.compile(tcc,[=[  // compile a C function
+  int simple(void *L) { // no parameters, no return value
+    int i=12;
+    int j=24;
+    printf("Hello, world... from TCC: %i\n",i*j);
+    return 0;
+  }
+]=])
+assert(b,string.format('error in C code: %s',e))
+TCC.relocate(tcc)
+local simple=TCC.getSymbol(tcc,'simple',1)  -- get address of simple()
+simple()  -- and call it
+tcc=nil</pre>
+
+<h3><a name="TCC.relocate">TCC.relocate</a>(tcc) <br><a href="#top" class="top">top of page</a></h3>
+<p>This function relocates and links all compiled code inside compiler instance tcc. It has to be called after compiling all the required C code strings (see <a href="#TCC.compile">TCC.compile()</a>), but before calling <a href="#TCC.getSymbol">TCC.getSymbol()</a> to obtain C functions. The function returns true if successful and false otherwise.</p>
+
+<h3><a name="TCC.new">TCC.new</a>(boff,incp,libp,libs) <br><a href="#top" class="top">top of page</a></h3>
+<p>This function is an example wrapper, one of many possible implementation strategies to access TCC from Idle in a simple and efficient manner. It returns a table t with the following elements:</p>
+<ul><li>t.tcc: holds the allocated compiler instance</li></ul>
+
+<ul><li>t.free( ): frees the underlying compiler instance</li></ul>
+
+<ul><li>t.compile(str): a function that can be used to compile as string</li></ul>
+
+<ul><li>t.link( ): a function that relocates and links previously compiled code</li></ul>
+
+<ul><li>t.cl(str): combines compile and link in one call</li></ul>
+
+<ul><li>t.getFunction(name): returns a callable C function</li></ul>
+<p>The boolean parameter boff, if true, switches off Idle's buffering of stdout. Unbuffered output may be necessary if both Idle and TCC write to stdout. The remaining three parameters, if specified, initialise the include path(s), library path(s) and add one or more libraries.</p>
+<p>Here is a simple, but complete example:</p>
+<pre>require('TCC')
+local incp={'..\\tcc\\include','..\\..'} -- set include paths
+local libp='..\\tcc\\lib'                -- set library path
+local libs='idle03'                      -- loads Idle03.def
+local tc=TCC.new(true,incp,libp,libs)    -- let's grab a compiler
+local C=tc.compile  -- a few shortcuts to compile and link C code
+local L=tc.link
+local F=tc.getFunction
+
+-- compile two C functions
+local b,e=C[=[
+  #include &lt;stdio.h&gt;
+  #include &lt;lua.h&gt;
+  #include &lt;lauxlib.h&gt;
+
+  int simple(void *L) { // no parameters, no return value
+     int i=12;
+     int j=24;
+     printf("Hello, world... from TCC: %i\n",i*j);
+     return 0;
+  }
+
+  int slightyLessSimple(lua_State *L) {
+     // two double parameters, two double returns
+     double i=(double)luaL_checknumber(L,1);
+     double j=(double)luaL_checknumber(L,2);
+     printf("d1*d2=%10.4f\n",i*j);
+     printf("d1/d2=%10.4f\n",i/j);
+     lua_pushnumber(L,i*j);
+     lua_pushnumber(L,i/j);
+     return 2;
+  }
+]=]
+
+assert(b,string.format('error in C code: %s',e))
+L()  -- finished with compiling, link the generated code
+local simple=F('simple')  -- get address of function simple()
+print('1.')
+simple()                  -- call it
+
+local slightyLessSimple=F('slightyLessSimple')
+print('\n2a.')
+print(slightyLessSimple(456.2,23.9))
+print('\n2b.')
+print(slightyLessSimple(math.pi,17.01^2))</pre>
+<br><hr><h6>$$ built from IdleTCC.txt d106963c4f77 Mon Sep 27 13:27:10 2010 +0000 thomasl $$</h6></div></body></html>

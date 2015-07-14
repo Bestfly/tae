@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>LuaXML</title>
+  <meta content="text/html; charset=iso-8859-1" http-equiv="content-type">
+  <meta name="author" content="Gerald Franz">
+  <link rel="stylesheet" type="text/css" href="../viremo.css">
+</head>
+
+<body>
+<h1>
+LuaXML
+<div style="font-size: small;">a module that maps between Lua and XML without much ado</div>
+</h1>
+
+<ul id="menu">
+    <li><a href="../index.html">viremo</a></li>
+    <li><a href="../protea/index.html">protea</a></li>
+    <li><a href="../LuaXML/index.html">LuaXML</a></li>
+    <li><a href="../cubon/index.html">cubon</a></li>
+  </ul>
+
+<div id="main">
+
+<div id="abstract">
+  <img src="LuaXml128.png" style="margin: 1em 0pt 0pt 1em; float: right;"> 
+  LuaXML provides a minimal set of functions for the processing of XML data in
+  <a href="http://www.lua.org/" title="Lua - external link">Lua</a>. It offers a 
+  very simple and natural mapping between the XML data format and Lua tables, which 
+  allows one to parse XML data just using Lua's normal table access and iteration 
+  methods: Substatements and text content is represented as array data having 
+  numerical keys, attributes and tags use string keys. This representation makes 
+  sure that the structure of XML data is exactly preserved in a read/write cycle. 
+  Since version 1.7, LuaXML consists of a well-optimized portable ISO-standard C file 
+  and a small Lua file. It is published under the same liberal licensing conditions as Lua 
+  itself (see below). It has been successfully compiled and used under Linux, various 
+  flavors of MS Windows, and MacOS X.
+</div>
+
+<h3><a name="download"/>Download</h3>
+<ul>
+  <li>
+    version 1.7.4, <a title="LuaXML_101012.zip" href="LuaXML_101012.zip">LuaXML_101012.zip</a>
+  </li>
+</ul>
+
+<h3><a name="example"/>Example</h3>
+<pre>
+-- import the LuaXML module 
+require("LuaXml") 
+-- load XML data from file "test.xml" into local table xfile 
+local xfile = xml.load("test.xml") 
+-- search for substatement having the tag "scene" 
+local xscene = xfile:find("scene") 
+-- if this substatement is found... 
+if xscene ~= nil then 
+  -- ...print it to screen
+  print(xscene)
+  -- print attribute id and first substatement
+  print( xscene.id, xscene[1] )
+  -- set attribute id
+  xscene["id"] = "newId"
+end 
+
+
+-- create a new XML object and set its tag to "root"
+local x = xml.new("root")
+-- append a new subordinate XML object, set its tag to "child", and its content to 123
+x:append("child")[1] = 123
+print(x)
+</pre>
+
+<h3><a name="documentation"/>Documentation</h3>
+<p>LuaXML consists of the following functions/calls:</p>
+
+<p><span style="font-weight: bold;">require("luaXml")</span>
+<br/>imports the LuaXML module.
+<br/>LuaXML consists of a lua file (LuaXml.lua) and normally a shared library (.dll/.so), although a static linking is possible as well. Both parts are imported by this call provided that they are found in Lua's package search path.
+</p>
+
+<p>
+  <b>function xml.new(arg)<br/>
+  </b>creates a new LuaXML object.
+</p>
+<ul>
+  <li>
+    param arg (optional), (1) a table to be converted to be converted to a LuaXML object, or (2) the tag of the new LuaXML object<br/>
+    <i>Note that it is not mandatory to use this function in order to treat a Lua table as LuaXML object. Setting the metatable just allows the usage of a more object-oriented syntax (e.g., xmlvar:str() instead of xml.str(xmlvar) ). XML objects created by xml.load() or xml.eval() automatically offer the object-oriented syntax.</i></li>
+  <li>Returns new LuaXML object</li>
+</ul>
+
+<p>
+<b>function xml.append(var,tag)</b><br/>
+appends a new subordinate LuaXML object to an existing one, optionally sets tag.
+</p>
+<ul>
+  <li>param var the parent LuaXML object</li>
+  <li>param tag (optional) the tag of the appended LuaXML object</li>
+  <li>Returns appended LuaXML object or nil in case of error</li>
+</ul>
+
+<p>
+  <b>function xml.load(filename)</b><br/>
+  loads xml data from a file and returns it as table
+</p>
+<ul>
+  <li>
+    param filename the name and path of the file to be loaded
+  </li><li>Returns a Lua table containing the xml data in case of success or nil.</li>
+</ul>
+
+<p>
+  <b>function xml.save(var,filename)</b><br/>
+  saves a Lua var as XML file.
+</p>
+<ul>
+  <li>
+    param var, the variable to be saved, normally a table
+  </li>
+  <li>
+    param filename the filename to be used. An existing file of the same name gets overwritten.
+  </li>
+</ul>
+
+<p>
+  <b>function xml.eval(xmlstring)</b><br/>
+  converts an XML string to a Lua table
+</p>
+<ul>
+  <li>
+    param xmlstring the string to be converted
+  </li>
+  
+  <li>
+    Returns a Lua table containing the xml data in case of success or nil.</li>
+</ul>
+
+<b>function xml.tag(var, tag)</b>
+<br/>sets or returns the tag of a LuaXML object. This method is just "syntactic sugar" (using a typical Lua term)
+<br/>that allows the writing of clearer code. LuaXML stores the tag value of an XML statement at table
+<br/>index 0, hence it can be simply accessed or altered by var[0] or var[xml.TAG] (the latter is just a&nbsp;
+<br/>symbolic name for the value 0). However, writing var:tag() for access or var:tag("newTag") for altering&nbsp;
+<br/>may be more self explanatory.
+<br/><ul><li>param var, the variable whose tag should be accessed, a LuaXml object</li><li>param tag (optional) the new tag to be set.
+<br/>
+</li></ul>
+
+<p>
+  <b>function xml.str(var, indent, tag)</b><br/>
+  converts any Lua var to an xml string.
+</p>
+<ul>
+  <li>
+    param var, the variable to be converted, normally a table
+  </li><li>param indent (optional) the current level of indentation for pretty output. Mainly for internal use.
+  </li>
+  <li>param tag (optional) the tag to be used for a table without tag. Mainly for internal use.
+  </li><li>
+    Returns an XML string in case of success or nil.
+  </li>
+</ul>
+
+<p>
+  <b>function xml.find(var, tag, attributeKey,attributeValue)</b><br/>
+  recursively parses a Lua table for a substatement fitting to the provided tag and attribute
+</p>
+<ul>
+  <li>
+    param var, the table to be searched in.
+  </li>
+  <li>
+    param tag (optional) the xml tag to be found.
+  </li>
+  <li>
+    param attributeKey (optional) the exact attribute to be found.
+  </li>
+  <li>
+    param attributeValue (optional) the attribute value to be found.
+  </li>
+  <li>
+    Returns the first (sub-)table which matches the search condition or nil.</li>
+</ul>
+
+<p>
+  <b>function xml.registerCode(decoded,encoded)</b><br/>
+  registers a custom code for the conversion between non-standard characters and XML character entities
+</p>
+<ul>
+  <li>
+    param decoded the character (sequence) to be used within Lua.
+  </li>
+  <li>
+    param encoded the character entity to be used in XML.
+  </li>
+  <li>
+    By default, only the most basic entities are known to LuaXml (" &amp; &amp;lt; &amp;gt;). 
+	ANSI codes above 127 are directly converted to the XML character codes of the same number.
+	 If more character codes are needed, they can be registered using this function.
+  </li>
+</ul>
+
+<h3><a name="license"/>LuaXML License</h3>
+<p>
+  <i> LuaXML is licensed under the terms of the MIT license reproduced below,</i><i> the same as Lua itself. This means that LuaXML is free software and can be </i><i>freely used for both academic and commercial purposes.</i><br style="font-style: italic;">
+  <br style="font-style: italic;">
+  Copyright (C) 2007-2010 Gerald Franz, www.viremo.de
+</p>
+<p>
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+</p>
+<p>
+  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+</p>
+<p>
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+</p>
+
+</div> <!-- main -->
+
+
+
+<div id="side">
+
+  <h4 id="side">Jump to...</h4>
+  <ul id="sideMenu">
+    <li><a href="#download">Download</a></li>
+    <li><a href="#example">Example</a></li>
+    <li><a href="#documentation">Documentation</a></li>
+    <li><a href="#license">License</a></li>
+  </ul>
+
+</div> <!-- side -->
+
+
+
+<div id="footer">
+<table cols="2" width="100%" border="0"><tr>
+        <td align="left" style=" font-size: smaller;">
+            &copy; <img  style=" vertical-align:text-top;" src="../img/email.png" /> 
+            2010-10-12
+        </td>
+        <td align="right">
+            <ul id="menu" style="margin: 0 3em 0 0; padding: 0; display: inline; border-top-style: none;">
+                <li><a href="../impressum.html">impressum</a></li>
+            </ul>
+        </td>
+</tr></table>
+</div> <!-- footer -->
+
+
+</body>
+</html>

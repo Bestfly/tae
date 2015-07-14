@@ -44,12 +44,12 @@ end
 -- Sets the timeout (in ms) protection for subsequent operations, including the connect method.
 red:set_timeout(3000) -- 3 sec
 -- nosql connect
-local ok, err = red:connect("10.171.99.210", 61390)
+local ok, err = red:connect("bac4641fd52011e4.m.cnsza.kvstore.aliyuncs.com", 6379)
 if not ok then
-	ngx.print(error003("failed to connect redis: ", err))
-	return
+        ngx.print(error003("failed to connect redis: ", err))
+        return
 end
-local r, e = red:auth("142ffb5bfa1-cn-jijilu-dg-a75")
+local r, e = red:auth("bac4641fd52011e4:555555Qi")
 if not r then
     ngx.print(error003("failed to authenticate: ", e))
     return
@@ -57,11 +57,11 @@ end
 local memc, err = memcached:new()
 if not memc then
     -- ngx.say("failed to instantiate memc: ", err)
-	ngx.log(ngx.ERR, "failed to instantiate memc: ", err)
+        ngx.log(ngx.ERR, "failed to instantiate memc: ", err)
     return
 end
 memc:set_timeout(3000) -- 3 sec
-local ok, err = memc:connect("127.0.0.1", 61978)
+local ok, err = memc:connect("127.0.0.1", 11978)
 if not ok then
     ngx.print(error003("failed to connect: ", err))
     return
@@ -154,11 +154,14 @@ else
 											if tvb ~= nil then
 												tmd = string.sub(tvb, 1, 32)
 												tmd = ngx.md5(tmd)
+											else
+												ngx.log(ngx.ERR, "Not found vb->>" .. kvid)
 											end
 											if md5vb ~= tmd then
 												local ok = memc:replace(kvid, md5vb .. vb)
 												if not ok then
-													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk))
+													ngx.log(ngx.ERR, "failed to replace vb->>" .. kvid .. '|' .. uk, vb)
 													return
 												else
 													if red:sismember(tset, kvid) ~= 1 then
@@ -171,7 +174,8 @@ else
 																ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 																return
 															else
-																ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+																-- ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+																ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk))
 															end
 														else
 															local res, err = red:lpush(idx3 .. ":list", kvid)
@@ -181,7 +185,8 @@ else
 																ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
 																return
 															else
-																ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+																-- ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+																ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk))
 															end
 														end
 													else
@@ -189,7 +194,8 @@ else
 													end
 												end
 											else
-												ngx.print(error000(sc .. '#Nothing to do..for:' .. uk .. '#' .. vb));
+												ngx.print(error000(sc .. '#Nothing to do..for:' .. uk));
+												-- ngx.print(error000(sc .. '#Nothing to do..for:' .. uk .. '#' .. vb));
 												-- return--don't cancel
 											end
 										else
@@ -204,7 +210,8 @@ else
 										else
 											local ok = memc:set(kvid, md5vb .. vb)
 											if not ok then
-												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk))
+												ngx.log(ngx.ERR, "failed to replace vb->>" .. kvid .. '|' .. uk, vb)
 												return
 											else
 												if dt ~= 1 then
@@ -214,7 +221,8 @@ else
 														ngx.print(error003("failed to rpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
-														ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+														ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk))
+														-- ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													end
 												else
 													local res, err = red:lpush(idx3 .. ":list", kvid)
@@ -223,7 +231,8 @@ else
 														ngx.print(error003("failed to lpush uk into " .. idx3 .. ":list->>" .. err))
 														return
 													else
-														ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+														ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk))
+														-- ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 													end
 												end
 											end
@@ -262,10 +271,12 @@ else
 												end
 												local ok = memc:replace(kvid, vb)
 												if not ok then
-													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+													ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk))
+													ngx.log(ngx.ERR, "failed to replace vb->>" .. kvid .. '|' .. uk, vb)
 													return
 												else
-													ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+													ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk))
+													-- ngx.print(error000("Sucess to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 												end
 											else
 												ngx.print(error003(sc .. '#Nothing to do..for:' .. uk .. '#' .. tscres));
@@ -279,10 +290,12 @@ else
 											end
 											local ok = memc:set(kvid, vb)
 											if not ok then
-												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk))
+												ngx.log(ngx.ERR, "failed to replace vb->>" .. kvid .. '|' .. uk, vb)
 												return
 											else
-												ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+												ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk))
+												-- ngx.print(error000("Sucess to save vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
 											end
 										end
 									else
@@ -316,7 +329,9 @@ else
 											local vb = string.sub(rdata, 1, 32) .. dt .. string.sub(rdata, 35, -1)
 											rdata, rerr = memc:replace(kvid, vb)
 											if not rdata then
-												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+												ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk))
+												-- ngx.print(error003("failed to replace vb->>" .. kvid .. '|' .. uk .. '|' .. vb))
+												ngx.log(ngx.ERR, "failed to replace vb->>" .. kvid .. '|' .. uk, vb)
 												return
 											else
 												if red:sismember(tset, kvid) ~= 1 then

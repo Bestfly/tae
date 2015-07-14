@@ -1,0 +1,25 @@
+{
+  "name": "higds_sdk",
+  "version": "1.0.0",
+  "description": "higds sdk package",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JerichoM/higds_sdk.git"
+  },
+  "keywords": [
+    "higds"
+  ],
+  "author": "higds",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JerichoM/higds_sdk/issues"
+  },
+  "homepage": "https://github.com/JerichoM/higds_sdk",
+  "dependencies": {
+    "request":"~2.48.0"
+  }
+}
